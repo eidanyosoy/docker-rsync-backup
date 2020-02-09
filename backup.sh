@@ -35,12 +35,18 @@ OPTIONS="--force --ignore-errors --delete \
  --backup --backup-dir=$ARCHIVEROOT \
  -aHAXxv --numeric-ids --progress"
 
+OPTIONSTAR="--warning=no-file-changed \
+ --ignore-failed-read \
+ --absolute-names \
+ --warning=no-file-removed"
+ 
+OPTIONSRCLONE="--config /rclone/rclone.conf \
+ -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 \
+ --checkers=8 --transfers=4 --no-traverse --fast-list"
+
 # Make sure our backup tree exists
 install -d "${ARCHIVEROOT}/${CURRENT}"
 echo "Installed ${ARCHIVEROOT}/${CURRENT}"
-
-OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed"
-OPTIONSRCLONE="--config /rclone/rclone.conf -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 --checkers=8 --transfers=4 --no-traverse --fast-list --include *.tar"
 
 # Our actual rsyncing function
 do_rsync()
@@ -55,10 +61,12 @@ tar_gz()
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
 cd "${ARCHIVEROOT}/${CURRENT}/home/"
-for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf  ${dir}.tar ./; done
+for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf ${dir}.tar ./; done
 }
 upload_tar()
 {
+# shellcheck disable=SC2086
+# shellcheck disable=SC2164
 # shellcheck disable=SC2086
 # shellcheck disable=SC2164
 if grep -q gcrypt /rclone/rclone.conf; then
@@ -66,27 +74,18 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else 
   REMOTE="gdrive"
 fi
-
-
-rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/ \
-     ${REMOTE}:backup/ \
-     ${OPTIONSRCLONE} --user-agent="hold_my_bear"
-
-##### Remove File Incase
- # shellcheck disable=SC2086
- # shellcheck disable=SC2164
-rm -rf ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar 1>/dev/null 2>&1
+rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
+rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/ ${REMOTE}:/system/backup/ ${OPTIONSRCLONE}
 }
-
 upload_tar_part2()
 {
 rrc="/rclone/rclone.conf"
 if [ -f $rrc ]; then 
   upload_tar
-    echo "$(date) :  Upload Backup done"
+  echo "$(date) :  Upload Backup done"
 else
-    echo "$(date) :  NO rclone.conf Found"
-    echo "$(date) :  Backups not Uploaded"
+  echo "$(date) :  NO rclone.conf Found"
+  echo "$(date) :  Backups not Uploaded"
 fi
 }
 # Some error handling and/or run our backup and accounting
@@ -100,7 +99,7 @@ else
   echo "$(date) : Rsync Backup done "
   tar_gz
   echo "$(date) : Tar Backup done"
-  # upload_tar_part2
+  #upload_tar_part2
   rm $PIDFILE;
 fi
 
