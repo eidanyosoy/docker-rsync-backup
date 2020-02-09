@@ -39,7 +39,17 @@ OPTIONS="--force --ignore-errors --delete \
 install -d "${ARCHIVEROOT}/${CURRENT}"
 echo "Installed ${ARCHIVEROOT}/${CURRENT}"
 
-OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed"
+OPTIONSTAR="--warning=no-file-changed \
+            --ignore-failed-read \
+	    --absolute-names \
+	    --warning=no-file-removed"
+OPTIONSRCLONE="--config /rclone/rclone.conf \
+	       -v --checksum --stats-one-line --stats 1s --progress \
+	       --tpslimit=10 \
+	       --checkers=8 \
+	       --transfers=4 \
+	       --no-traverse \
+	       --fast-list"
 
 # Our actual rsyncing function
 do_rsync()
@@ -64,20 +74,24 @@ upload_tar()
 rclone --config /rclone/rclone.conf mkdir gdrive:/system/backup/ 1>/dev/null 2>&1
 
 rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar \
-    gdrive:/system/backup/${dir}.tar \
-	   --config /rclone/rclone.conf \
-	   -v --checksum --stats-one-line --stats 1s --progress \
-	   --tpslimit=10 \
-	   --checkers=8 \
-	   --transfers=4 \
-	   --no-traverse \
-	   --fast-list \
-	   --user-agent="hold_my_bear"
+    gdrive:/system/backup/${dir}.tar\
+    "${OPTIONSRCLONE}" --user-agent="hold_my_bear"
 
 ##### Remove File Incase
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
 rm -rf ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar 1>/dev/null 2>&1
+}
+upload_tar_part2()
+{
+rrc="/rclone/rclone.conf"
+if [ -f $rrc ]; then 
+  upload_tar
+  echo "$(date) :  Upload Backup done"
+else
+    echo "$(date) :  NO rclone.conf Found"
+    echo "$(date) :  Backups not Uploaded"
+fi
 }
 # Some error handling and/or run our backup and accounting
 if [ -f $PIDFILE ]; then
@@ -90,6 +104,7 @@ else
   echo "$(date) : Rsync Backup done "
   tar_gz
   echo "$(date) : Tar Backup done"
+  upload_tar_part2
   rm $PIDFILE;
 fi
 
