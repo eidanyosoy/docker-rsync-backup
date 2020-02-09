@@ -60,8 +60,9 @@ tar_gz()
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
-cd "${ARCHIVEROOT}/${CURRENT}/home/"
-for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf ${dir}.tar ./; done
+cd "$ARCHIVEROOT/$CURRENT"
+for dir_tar in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./; done
+
 }
 upload_tar()
 {
@@ -75,7 +76,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
-rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/ ${REMOTE}:/system/backup/ ${OPTIONSRCLONE}
+rclone moveto $ARCHIVEROOT/$CURRENT/home/ ${REMOTE}:/system/backup/ ${OPTIONSRCLONE}
 }
 upload_tar_part2()
 {
