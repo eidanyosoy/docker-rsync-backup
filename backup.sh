@@ -60,9 +60,12 @@ upload_tar()
 {
 # shellcheck disable=SC2086
 # shellcheck disable=SC2164
+
+rclone --config /rclone/rclone.conf mkdir gdrive:/system/backup/ 1>/dev/null 2>&1
+
 rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar \
     gdrive:/system/backup/${dir}.tar \
-	   --config ${ARCHIVEROOT}/${CURRENT}/rclone.conf \
+	   --config /rclone/rclone.conf \
 	   -v --checksum --stats-one-line --stats 1s --progress \
 	   --tpslimit=10 \
 	   --checkers=8 \
