@@ -78,21 +78,22 @@ fi
 
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
 
-rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar \
-     ${REMOTE}:/system/backup/${dir}.tar\
-     ${OPTIONSRCLONE} --user-agent="hold_my_bear"
+for upload in `find ${ARCHIVEROOT}/${CURRENT}/home/ -maxdepth 1 -type f -name "*.tar"`; do  \
+                rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${upload}.tar  \
+                ${REMOTE}:/system/backup/${upload}.tar "${OPTIONSRCLONE}" --user-agent="hold_my_bear"; done
 
 ##### Remove File Incase
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
-rm -rf ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar 1>/dev/null 2>&1
+ for remove in `find ${ARCHIVEROOT}/${CURRENT}/home/ -maxdepth 1 -type f -name "*.tar"`; do  \
+                 rm -rf ${ARCHIVEROOT}/${CURRENT}/home/${remove}.tar 1>/dev/null 2>&1 ; done
 }
 upload_tar_part2()
 {
 rrc="/rclone/rclone.conf"
 if [ -f $rrc ]; then 
-  upload_tar
-  echo "$(date) :  Upload Backup done"
+    upload_tar
+    echo "$(date) :  Upload Backup done"
 else
     echo "$(date) :  NO rclone.conf Found"
     echo "$(date) :  Backups not Uploaded"
@@ -100,16 +101,16 @@ fi
 }
 # Some error handling and/or run our backup and accounting
 if [ -f $PIDFILE ]; then
-  echo "$(date): backup already running, remove pid file to rerun"
+    echo "$(date): backup already running, remove pid file to rerun"
   exit
 else
   touch $PIDFILE;
   # Now the actual transfer
-  do_rsync
-  echo "$(date) : Rsync Backup done "
-  tar_gz
-  echo "$(date) : Tar Backup done"
-  upload_tar_part2
+    do_rsync
+    echo "$(date) : Rsync Backup done "
+    tar_gz
+    echo "$(date) : Tar Backup done"
+    upload_tar_part2
   rm $PIDFILE;
 fi
 
