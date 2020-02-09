@@ -43,13 +43,7 @@ OPTIONSTAR="--warning=no-file-changed \
             --ignore-failed-read \
 	    --absolute-names \
 	    --warning=no-file-removed"
-OPTIONSRCLONE="--config /rclone/rclone.conf \
-	       -v --checksum --stats-one-line --stats 1s --progress \
-	       --tpslimit=10 \
-	       --checkers=8 \
-	       --transfers=4 \
-	       --no-traverse \
-	       --fast-list"
+OPTIONSRCLONE="--config /rclone/rclone.conf -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 --checkers=8 --transfers=4 --no-traverse --fast-list"
 
 # Our actual rsyncing function
 do_rsync()
@@ -64,7 +58,7 @@ tar_gz()
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
 cd "${ARCHIVEROOT}/${CURRENT}/home/"
-for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf  ${dir}.tar ./; done
+for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf ${dir}.tar ./; done
 }
 upload_tar()
 {
@@ -74,13 +68,11 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE=gcrypt
  else REMOTE=gdrive
 fi
-
-##### Remove File Incase
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
 upload=$(find ${ARCHIVEROOT}/${CURRENT}/home/ -type f -maxdepth 1 -name "*.tar" )
-rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/ \
+rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${upload} \
               ${REMOTE}:/system/backup/${upload} ${OPTIONSRCLONE} --user-agent="hold_my_bear"
 
 find ${ARCHIVEROOT}/${CURRENT}/home/ -type f -maxdepth 1 -name "*.tar" -exec rm -rf {} \;
