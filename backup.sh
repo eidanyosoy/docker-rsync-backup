@@ -95,7 +95,8 @@ tar_gz()
  # shellcheck disable=SC2086
 
 cd "${ARCHIVEROOT}/${CURRENT}/home/"
-for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -cvf ${dir}.tar ${dir}; done
+for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf  ${dir}.tar ./; done
+
 }
 
   # ShellCheck: Allow unquoted OPTIONS because it contain spaces
