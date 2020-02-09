@@ -44,17 +44,37 @@ OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --wa
 # Our actual rsyncing function
 do_rsync()
 {
-  # ShellCheck: Allow unquoted OPTIONS because it contain spaces
-  # shellcheck disable=SC2086
+ # shellcheck disable=SC2086
+ # shellcheck disable=SC2164
   rsync ${OPTIONS} -e "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
 }
 tar_gz()
 {  
- # ShellCheck: Allow unquoted OPTIONS because it contain spaces
  # shellcheck disable=SC2086
+ # shellcheck disable=SC2164
+ # shellcheck disable=SC2006
 cd "${ARCHIVEROOT}/${CURRENT}/home/"
 for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir} -cvf  ${dir}.tar ./; done
+}
+upload_tar()
+{
+# shellcheck disable=SC2086
+# shellcheck disable=SC2164
+rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar \
+    gdrive:/system/backup/${dir}.tar \
+	   --config ${ARCHIVEROOT}/${CURRENT}/rclone.conf \
+	   -v --checksum --stats-one-line --stats 1s --progress \
+	   --tpslimit=10 \
+	   --checkers=8 \
+	   --transfers=4 \
+	   --no-traverse \
+	   --fast-list \
+	   --user-agent="hold_my_bear"
 
+##### Remove File Incase
+ # shellcheck disable=SC2086
+ # shellcheck disable=SC2164
+rm -rf ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar 1>/dev/null 2>&1
 }
 # Some error handling and/or run our backup and accounting
 if [ -f $PIDFILE ]; then
