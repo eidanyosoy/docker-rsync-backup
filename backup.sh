@@ -69,45 +69,32 @@ RSYNC_SKIP_COMPRESS="3fr/3g2/3gp/3gpp/7z/aac/ace/amr/apk/appx/appxbundle/arc/arj
 # Directory which holds our current datastore
 CURRENT=main
 
-# Directory which we save incremental changes to
-INCREMENTDIR=$(date +%Y-%m-%d)
-
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/backup_excludes \
  --skip-compress=$RSYNC_SKIP_COMPRESS \
- --backup --backup-dir=$ARCHIVEROOT/$INCREMENTDIR \
+ --backup --backup-dir=$ARCHIVEROOT \
  -aHAXxv --numeric-ids --progress"
 
 # Make sure our backup tree exists
 install -d "${ARCHIVEROOT}/${CURRENT}"
 echo "Installed ${ARCHIVEROOT}/${CURRENT}"
 
-# Delete old directory for this day (to only keep latest month
-rm -rf "${ARCHIVEROOT}"/*-"${INCREMENTDIR##*-}"
+OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed"
 
 # Our actual rsyncing function
 do_rsync()
 {
   # ShellCheck: Allow unquoted OPTIONS because it contain spaces
   # shellcheck disable=SC2086
-  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
+  rsync ${OPTIONS} -e "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
 }
-
-# Our post rsync accounting function
-# TODO: Currently unused. May send email in the future
-do_accounting()
-{
-   echo "Backup Accounting for Day $INCREMENTDIR on $REMOTE_HOSTNAME:">/tmp/rsync_script_tmpfile
-   echo >> /tmp/rsync_script_tmpfile
-   echo "################################################">>/tmp/rsync_script_tmpfile
-   # du -s $ARCHIVEROOT/* >> /tmp/rsync_script_tmpfile
-   # echo "Mail $MAILADDR -s $REMOTE_HOSTNAME Backup Report < /tmp/rsync_script_tmpfile"
-   # Mail $MAILADDR -s $REMOTE_HOSTNAME Backup Report < /tmp/rsync_script_tmpfile
-   echo "rm /tmp/rsync_script_tmpfile"
-   rm /tmp/rsync_script_tmpfile
-}
-
+#tar_gz()
+#{
+  # ShellCheck: Allow unquoted OPTIONS because it contain spaces
+  # shellcheck disable=SC2086
+#tar ${OPTIONSTAR} -C "$ARCHIVEROOT/$CURRENT"-cvf "$ARCHIVEROOT/$CURRENT/"${folder_var}.tar ./
+#}
 # Some error handling and/or run our backup and accounting
 if [ -f $PIDFILE ]; then
   echo "$(date): backup already running, remove pid file to rerun"
@@ -116,9 +103,7 @@ else
   touch $PIDFILE;
   # Now the actual transfer
   do_rsync
-  # Accounting in the future
-  # do_accounting
-  echo "Backup done on ${INCREMENTDIR}"
+  echo "Rsync Backup done"
   rm $PIDFILE;
 fi
 
