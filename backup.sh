@@ -70,11 +70,16 @@ upload_tar()
 {
 # shellcheck disable=SC2086
 # shellcheck disable=SC2164
+if grep -q gcrypt /rclone/rclone.conf; then
+  REMOTE=gcrypt
+ else 
+  REMOTE=gdrive
+fi
 
-rclone --config /rclone/rclone.conf mkdir gdrive:/system/backup/ 1>/dev/null 2>&1
+rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
 
 rclone moveto ${ARCHIVEROOT}/${CURRENT}/home/${dir}.tar \
-    gdrive:/system/backup/${dir}.tar\
+    "${REMOTE}":/system/backup/${dir}.tar\
     "${OPTIONSRCLONE}" --user-agent="hold_my_bear"
 
 ##### Remove File Incase
