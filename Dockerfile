@@ -7,7 +7,9 @@ ENV REMOTE_HOSTNAME="" \
     EXCLUDES="/backup_excludes" \
     CRON_TIME="0 1 * * *"
 
-RUN apk add --no-cache rsync openssh-client tar
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache rsync openssh-client tar nano
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
