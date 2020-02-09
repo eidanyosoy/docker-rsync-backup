@@ -13,8 +13,8 @@ RUN apk add --no-cache rsync openssh-client tar nano wget
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
     unzip rclone.zip && rm rclone.zip && \
-    mv rclone*/rclone /usr/bin && rm -r rclone* 
-
+    mv rclone*/rclone /usr/bin && rm -r rclone* && \
+    mkdir -p /rclone
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
