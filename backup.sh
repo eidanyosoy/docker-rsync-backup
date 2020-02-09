@@ -89,12 +89,19 @@ do_rsync()
   # shellcheck disable=SC2086
   rsync ${OPTIONS} -e "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
 }
-#tar_gz()
-#{
+tar_gz()
+{  
+ # ShellCheck: Allow unquoted OPTIONS because it contain spaces
+ # shellcheck disable=SC2086
+
+cd "${ARCHIVEROOT}/${CURRENT}"
+for dir in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -cvf ${dir}.tar ${dir}; done
+}
+
   # ShellCheck: Allow unquoted OPTIONS because it contain spaces
   # shellcheck disable=SC2086
 #tar ${OPTIONSTAR} -C "$ARCHIVEROOT/$CURRENT"-cvf "$ARCHIVEROOT/$CURRENT/"${folder_var}.tar ./
-#}
+
 # Some error handling and/or run our backup and accounting
 if [ -f $PIDFILE ]; then
   echo "$(date): backup already running, remove pid file to rerun"
@@ -104,6 +111,8 @@ else
   # Now the actual transfer
   do_rsync
   echo "Rsync Backup done"
+  tar_gz
+  echo "Tar Backup done"
   rm $PIDFILE;
 fi
 
