@@ -111,9 +111,9 @@ else
   touch $PIDFILE;
   # Now the actual transfer
   do_rsync
-  echo "Rsync Backup done"
+  echo "$(date) : Rsync Backup done "
   tar_gz
-  echo "Tar Backup done"
+  echo "$(date) : Tar Backup done"
   rm $PIDFILE;
 fi
 
