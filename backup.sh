@@ -23,10 +23,6 @@ PIDFILE=/var/run/backup.pid
 
 # Skip compression on already compressed files
 RSYNC_SKIP_COMPRESS="3fr/3g2/3gp/3gpp/7z/aac/ace/amr/apk/appx/appxbundle/arc/arj/arw/asf/avi/bz2/cab/cr2/crypt[5678]/dat/dcr/deb/dmg/drc/ear/erf/flac/flv/gif/gpg/gz/iiq/iso/jar/jp2/jpeg/jpg/k25/kdc/lz/lzma/lzo/m4[apv]/mef/mkv/mos/mov/mp[34]/mpeg/mp[gv]/msi/nef/oga/ogg/ogv/opus/orf/pef/png/qt/rar/rpm/rw2/rzip/s7z/sfx/sr2/srf/svgz/t[gb]z/tlz/txz/vob/wim/wma/wmv/xz/zip"
-# RSYNC_SKIP_COMPRESS="3fr"
-
-# Directory which holds our current datastore
-CURRENT=main
 
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
@@ -42,22 +38,22 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
  --checkers=8 --transfers=4 --no-traverse --fast-list"
 
 # Make sure our backup tree exists
-install -d "${ARCHIVEROOT}/${CURRENT}"
-echo "Installed ${ARCHIVEROOT}/${CURRENT}"
+install -d "${ARCHIVEROOT}"
+echo "Installed ${ARCHIVEROOT}"
 
 # Our actual rsyncing function
 do_rsync()
 {
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
-  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
+  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}" "$ARCHIVEROOT"
 }
 tar_gz()
 {  
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
-cd "$ARCHIVEROOT/$CURRENT"
+cd ${BACKUPDIR}
 for dir_tar in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./; done
 }
 upload_tar()
@@ -71,14 +67,14 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
-tree -a -L 1  /home | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
+tree -a -L 1 ${BACKUPDIR} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 
 while read p; do
 
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-  rclone copyto ${ARCHIVEROOT}/${CURRENT}/home/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} -include "*.tar"
+  rclone copyto ${BACKUPDIR}/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} --include "*.tar"
 
 done </tmp/tar_folders
 
