@@ -27,6 +27,7 @@ RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/reposi
         curl \
         libxml2-utils \
         htop \
+        tree \
         nano \
         mc
 
