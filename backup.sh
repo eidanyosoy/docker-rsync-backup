@@ -38,7 +38,7 @@ OPTIONS="--force --ignore-errors --delete \
 OPTIONSTAR="--warning=no-file-changed \
  --ignore-failed-read \
  --absolute-names \
- --warning=no-file-removed"
+ --warning=no-file-removed" --exclude-from=/backup_excludes
  
 OPTIONSRCLONE="--config /rclone/rclone.conf \
  -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 \
@@ -62,11 +62,9 @@ tar_gz()
  # shellcheck disable=SC2006
 cd "$ARCHIVEROOT/$CURRENT"
 for dir_tar in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./; done
-
 }
 upload_tar()
 {
-# shellcheck disable=SC2086
 # shellcheck disable=SC2164
 # shellcheck disable=SC2086
 # shellcheck disable=SC2164
@@ -76,7 +74,16 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
-rclone moveto $ARCHIVEROOT/$CURRENT/home/ ${REMOTE}:/system/backup/ ${OPTIONSRCLONE}
+
+while read p; do
+
+  echo $p >/tmp/tar
+  tar=$(cat /tmp/tar)
+
+  rclone copyto ${ARCHIVEROOT}/${CURRENT}/home/${tar}.tar ${REMOTE}:/system/backup/${tar}.tar ${OPTIONSRCLONE}
+
+done </tmp/tar_done
+
 }
 upload_tar_part2()
 {
@@ -89,15 +96,15 @@ else
   echo "$(date) :  Backups not Uploaded"
 fi
 }
-# Some error handling and/or run our backup and accounting
+# Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
-  echo "$(date): backup already running, remove pid file to rerun"
+  echo "$(date): Backup already running, remove PID file to rerun"
   exit
 else
   touch $PIDFILE;
   # Now the actual transfer
   do_rsync
-  echo "$(date) : Rsync Backup done "
+  echo "$(date) : Rsync Backup done"
   tar_gz
   echo "$(date) : Tar Backup done"
   #upload_tar_part2
