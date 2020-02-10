@@ -32,10 +32,12 @@ OPTIONS="--force --ignore-errors --delete \
  -aHAXxvP --numeric-ids"
 
 OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed --exclude-from=/root/backup_excludes --use-compress-program=pigz"
- 
+
 OPTIONSRCLONE="--config /rclone/rclone.conf \
  -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 \
  --checkers=8 --transfers=4 --no-traverse --fast-list"
+
+INCREMENT=$(date +%Y-%m-%d)
 
 # Make sure our backup tree exists
 install -d "${ARCHIVEROOT}"
@@ -49,7 +51,7 @@ do_rsync()
   rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}/" "$ARCHIVEROOT"
 }
 tar_gz()
-{  
+{
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
@@ -63,10 +65,20 @@ upload_tar()
 # shellcheck disable=SC2164
 if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gcrypt"
- else 
+ else
   REMOTE="gdrive"
 fi
-rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
+
+sid="/rclone/server.id"
+if [ -f $sid ]; then
+  SEVERID="$(cat /rclone/server.id)" 
+  echo "$(date) :  ServerID Set to {$SEVERID}"
+else
+  SEVERID="$(backup)"
+  echo "$(date) :  NO ServerID Found"
+fi
+
+rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/${SERVERID} 1>/dev/null 2>&1
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 
@@ -74,7 +86,8 @@ while read p; do
 
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} --include "*.tar"
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/${SERVERID}/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/${SERVERID}-${INCREMENT}/${tar} ${OPTIONSRCLONE}
 
 done </tmp/tar_folders
 
@@ -82,7 +95,7 @@ done </tmp/tar_folders
 upload_tar_part2()
 {
 rrc="/rclone/rclone.conf"
-if [ -f $rrc ]; then 
+if [ -f $rrc ]; then
   upload_tar
   echo "$(date) :  Upload Backup done"
 else
@@ -90,6 +103,7 @@ else
   echo "$(date) :  Backups not Uploaded"
 fi
 }
+
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
   echo "$(date): Backup already running, remove PID file to rerun"
