@@ -30,12 +30,12 @@ CURRENT=main
 
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
- --exclude-from=/backup_excludes \
+ --exclude-from=/root/backup_excludes \
  --skip-compress=$RSYNC_SKIP_COMPRESS \
  --backup --backup-dir=$ARCHIVEROOT \
  -aHAXxv --numeric-ids --progress"
 
-OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed --exclude-from=/backup_excludes"
+OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed --exclude-from=/root/backup_excludes"
  
 OPTIONSRCLONE="--config /rclone/rclone.conf \
  -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 \
