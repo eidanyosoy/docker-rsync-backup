@@ -31,10 +31,15 @@ OPTIONS="--force --ignore-errors --delete \
  --backup --backup-dir=$ARCHIVEROOT \
  -aHAXxvP --numeric-ids"
 
-OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed --exclude-from=/root/backup_excludes --use-compress-program=pigz"
+OPTIONSTAR="--warning=no-file-changed \
+  --ignore-failed-read \
+  --absolute-names \
+  --warning=no-file-removed \
+  --exclude-from=/root/backup_excludes
+  --use-compress-program=pigz"
 
 OPTIONSRCLONE="--config /rclone/rclone.conf \
- -v --checksum --stats-one-line --stats 1s --progress --tpslimit=10 \
+ -v --size-only --stats-one-line --stats 1s --progress --tpslimit=10 \
  --checkers=8 --transfers=4 --no-traverse --fast-list"
 
 INCREMENT=$(date +%Y-%m-%d)
@@ -71,14 +76,12 @@ fi
 
 sid="/rclone/server.id"
 if [ -f $sid ]; then
-  SEVERID="$(cat /rclone/server.id)" 
-  echo "$(date) :  ServerID Set to {$SEVERID}"
+  echo "$(date) :  ServerID Set to $(cat /rclone/server.id)"
 else
-  SEVERID="$(backup)"
+  echo backup >/rclone/server.id
   echo "$(date) :  NO ServerID Found"
 fi
 
-rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/${SERVERID} 1>/dev/null 2>&1
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 
@@ -86,8 +89,8 @@ while read p; do
 
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/${SERVERID}/${tar} ${OPTIONSRCLONE}
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/${SERVERID}-${INCREMENT}/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/$(cat /rclone/server.id)/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/$(cat /rclone/server.id)/${INCREMENT}/${tar} ${OPTIONSRCLONE}
 
 done </tmp/tar_folders
 
