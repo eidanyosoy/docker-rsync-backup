@@ -53,7 +53,7 @@ tar_gz()
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
-cd ${BACKUPDIR}
+cd ${ARCHIVEROOT}
 for dir_tar in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./; done
 }
 upload_tar()
