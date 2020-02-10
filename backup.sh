@@ -29,7 +29,7 @@ OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
  --skip-compress=$RSYNC_SKIP_COMPRESS \
  --backup --backup-dir=$ARCHIVEROOT \
- -aHAXxv --numeric-ids --progress"
+ -aHAXxvP --numeric-ids"
 
 OPTIONSTAR="--warning=no-file-changed --ignore-failed-read --absolute-names --warning=no-file-removed --exclude-from=/root/backup_excludes --use-compress-program=pigz"
  
@@ -46,7 +46,7 @@ do_rsync()
 {
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
-  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}" "$ARCHIVEROOT"
+  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}/" "$ARCHIVEROOT"
 }
 tar_gz()
 {  
