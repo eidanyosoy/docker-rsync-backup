@@ -67,14 +67,14 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
-tree -a -L 1 ${BACKUPDIR} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
+tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 
 while read p; do
 
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-  rclone copyto ${BACKUPDIR}/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} --include "*.tar"
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} --include "*.tar"
 
 done </tmp/tar_folders
 
