@@ -2,7 +2,7 @@ FROM alpine:latest
 MAINTAINER Johan Swetzén <johan@swetzen.com>
 
 ENV REMOTE_HOSTNAME="" \
-    BACKUPDIR="/home" \
+    BACKUPDIR="/home/" \
     ARCHIVEROOT="/backup" \
     EXCLUDES="/backup_excludes" \
     SSH_PORT="22" \
