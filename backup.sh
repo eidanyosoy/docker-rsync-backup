@@ -50,7 +50,7 @@ do_rsync()
 {
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
-  rsync ${OPTIONS} -e "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
+  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}" "$ARCHIVEROOT/$CURRENT"
 }
 tar_gz()
 {  
