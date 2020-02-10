@@ -71,13 +71,14 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 rclone --config /rclone/rclone.conf mkdir ${REMOTE}:/system/backup/ 1>/dev/null 2>&1
+tree -a -L 1  /home | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
+p="/tmp/tar_folders"
 
 while read p; do
 
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-
-  rclone copyto ${ARCHIVEROOT}/${CURRENT}/home/${tar}.tar ${REMOTE}:/system/backup/${tar}.tar ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${CURRENT}/home/${tar} ${REMOTE}:/system/backup/${tar} ${OPTIONSRCLONE} -include "*.tar"
 
 done </tmp/tar_done
 
@@ -104,7 +105,7 @@ else
   echo "$(date) : Rsync Backup done"
   tar_gz
   echo "$(date) : Tar Backup done"
-  #upload_tar_part2
+  upload_tar_part2
   rm $PIDFILE;
 fi
 
