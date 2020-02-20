@@ -9,14 +9,14 @@ ENV REMOTE_HOSTNAME="" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
     CRON_TIME="0 1 * * *"
 
-RUN apk update
-RUN apk upgrade
-RUN apk add --no-cache rsync openssh-client tar nano wget 
-
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
     apk add --no-cache \
         ca-certificates \
+        rsync \
+        openssh-client \
+        tar \
+        wget \
         logrotate \
         shadow \
         bash \
@@ -30,12 +30,15 @@ RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/reposi
         tree \
         nano \
         pigz \
-        mc
+        mc \ 
+        tzdata
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
     unzip rclone.zip && rm rclone.zip && \
     mv rclone*/rclone /usr/bin && rm -r rclone* && \
     mkdir -p /rclone
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
