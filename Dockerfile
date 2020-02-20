@@ -38,8 +38,6 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.z
     mv rclone*/rclone /usr/bin && rm -r rclone* && \
     mkdir -p /rclone
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
 COPY backup_excludes /root/backup_excludes
