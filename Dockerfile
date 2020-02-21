@@ -1,5 +1,6 @@
 FROM alpine:latest
 MAINTAINER Johan Swetzén <johan@swetzen.com>
+MAINTAINERMoD MrDoob <fuckoff@all.com>
 
 ENV BACKUPDIR="/home" \
     ARCHIVEROOT="/backup" \
