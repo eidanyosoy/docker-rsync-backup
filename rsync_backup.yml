@@ -70,7 +70,7 @@
           - 'SYS_TIME'
           - 'SYS_NICE'
         networks:
-          - name: amg
+          - name: plexguide
             aliases:
               - 'rsync-backup'
         state: started
