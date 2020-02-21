@@ -6,7 +6,7 @@
 # License:    Copyright (c) 2020 @Authors
 # Own Risk any edits or mods 
 ################################################################################
-----
+---
 - hosts: localhost
   gather_facts: false
   tasks:
@@ -19,7 +19,7 @@
     - name: 'Register TimeZone'
       shell: 'cat /etc/timezone'
       register: tz
-      
+
     - name: 'Setting {{amg_role}} Volumes'
       set_fact:
         amg_volumes:
@@ -32,15 +32,9 @@
       set_fact:
         amg_env:
           CRON_TIME : '0 1 * * *'
-          CONTAINER_TIMEZONE: '{{tz.stdout}}''
+          CONTAINER_TIMEZONE: '{{to.stdout}}'
 
     ## VALUES for upload backups
-
-    - name: 'Create Backup dir folder'
-      file:
-        path: '/mnt/backup/'
-        state: directory
-        mode: '0755'
 
     - name: 'Create {{amg_role}} dir folder'
       file:
@@ -58,7 +52,7 @@
       ignore_errors: yes
       when: rcp.stat.exists == true
 
-    - name: 'Clone rclone.config to {{ amg_role }} folder' 
+    - name: 'Clone rclone.config to {{ amg_role }} folder'
       shell: 'cp -r /opt/appdata/plexguide/rclone.conf /opt/appdata/{{amg_role}}/rclone/rclone.conf'
       ignore_errors: yes
 
@@ -71,12 +65,12 @@
         pull: yes
         volumes: '{{amg_volumes}}'
         env: '{{amg_env}}'
+        restart_policy: unless-stopped
         capabilities:
           - 'SYS_TIME'
           - 'SYS_NICE'
-        restart_policy: unless-stopped
         networks:
-          - name: plexguide
+          - name: amg
             aliases:
               - 'rsync-backup'
         state: started
