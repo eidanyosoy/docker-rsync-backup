@@ -8,7 +8,9 @@ ENV REMOTE_HOSTNAME="" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
     CRON_TIME="0 1 * * *" \
-    LOGS="/log"
+    LOGS="/log" \
+    SET_CONTAINER_TIMEZONE="true" \
+    CONTAINER_TIMEZONE="Europe/Berlin"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
