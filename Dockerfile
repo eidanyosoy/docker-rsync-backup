@@ -37,7 +37,7 @@ RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/reposi
         tzdata \
         openntpd
 
-RUN mkdir -p /log/tar
+RUN mkdir -p /log
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
     unzip rclone.zip && rm rclone.zip && \
