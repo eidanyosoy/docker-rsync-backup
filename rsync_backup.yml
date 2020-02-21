@@ -26,7 +26,7 @@
           - '/opt/appdata/:/home'
           - '/mnt/backup:/backup'
           - '/opt/appdata/{{g_role}}/rclone:/rclone'
-          - '/opt/appdata/{{g_roles}}/log:/log'
+          - '/opt/appdata/{{g_role}}/log:/log'
 
     - name: 'Setting {{amg_role}} ENV'
       set_fact:
