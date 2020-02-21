@@ -2,12 +2,13 @@ FROM alpine:latest
 MAINTAINER Johan Swetzén <johan@swetzen.com>
 
 ENV REMOTE_HOSTNAME="" \
-    BACKUPDIR="/home/" \
+    BACKUPDIR="/home" \
     ARCHIVEROOT="/backup" \
     EXCLUDES="/backup_excludes" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
     CRON_TIME="0 1 * * *"
+    LOGS="/log"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
@@ -33,6 +34,8 @@ RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/reposi
         mc \ 
         tzdata \
         openntpd
+
+RUN mkdir -p /log/tar
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
     unzip rclone.zip && rm rclone.zip && \
