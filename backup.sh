@@ -25,7 +25,7 @@ LOGS=/log
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
  --backup --backup-dir=$ARCHIVEROOT \
- -aHAXxv --log-file=${LOGS}/rsync.log"
+ -aHAXx --log-file=${LOGS}/rsync.log"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
