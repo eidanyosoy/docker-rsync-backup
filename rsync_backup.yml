@@ -32,7 +32,7 @@
       set_fact:
         amg_env:
           CRON_TIME : '0 1 * * *'
-          CONTAINER_TIMEZONE: '{{to.stdout}}'
+          CONTAINER_TIMEZONE: '{{tz.stdout}}'
 
     ## VALUES for upload backups
 
