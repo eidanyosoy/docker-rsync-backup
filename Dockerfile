@@ -1,5 +1,5 @@
 FROM alpine:latest
-MAINTAINER Johan Swetzén <johan@swetzen.com>
+#THX TO Johan Swetzén <johan@swetzen.com> for Build up the basic parts
 MAINTAINER MrDoob <fuckoff@all.com>
 
 ENV BACKUPDIR="/home" \
