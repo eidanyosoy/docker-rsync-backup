@@ -22,7 +22,7 @@
       
     - name: 'Setting {{g_role}} Volumes'
       set_fact:
-        g_volumes:
+        g_volumes::
           - '/opt/appdata/:/home'
           - '/mnt/backup:/backup'
           - '/opt/appdata/{{g_role}}/rclone:/rclone'
