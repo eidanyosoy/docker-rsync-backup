@@ -7,7 +7,7 @@ ENV REMOTE_HOSTNAME="" \
     EXCLUDES="/backup_excludes" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
-    CRON_TIME="0 1 * * *"
+    CRON_TIME="0 1 * * *" \
     LOGS="/log"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
