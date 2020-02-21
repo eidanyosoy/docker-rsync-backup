@@ -6,33 +6,33 @@
 # License:    Copyright (c) 2020 @Authors
 # Own Risk any edits or mods 
 ################################################################################
----
+----
 - hosts: localhost
   gather_facts: false
   tasks:
     # #######################################################################
     - name: 'Set Known Facts'
       set_fact:
-        g_role: 'rsync-backup'
-        image: 'mrdoob/rsyncbackup:latest'
+        amg_role: 'rsync-backup'
+        image: 'mrdoob/rsyncbackup'
 
     - name: 'Register TimeZone'
       shell: 'cat /etc/timezone'
       register: tz
       
-    - name: 'Setting {{g_role}} Volumes'
+    - name: 'Setting {{amg_role}} Volumes'
       set_fact:
-        g_volumes::
+        amg_volumes:
           - '/opt/appdata/:/home'
           - '/mnt/backup:/backup'
-          - '/opt/appdata/{{g_role}}/rclone:/rclone'
-          - '/opt/appdata/{{g_role}}/log:/log'
+          - '/opt/appdata/{{amg_role}}/rclone:/rclone'
+          - '/opt/appdata/{{amg_role}}/log:/log'
 
     - name: 'Setting {{amg_role}} ENV'
       set_fact:
-        g_env:
+        amg_env:
           CRON_TIME : '0 1 * * *'
-          CONTAINER_TIMEZONE: '{{tz.stdout}}'
+          CONTAINER_TIMEZONE: '{{tz.stdout}}''
 
     ## VALUES for upload backups
 
@@ -42,35 +42,35 @@
         state: directory
         mode: '0755'
 
-    - name: 'Create {{g_role}} dir folder'
+    - name: 'Create {{amg_role}} dir folder'
       file:
-        path: '/opt/appdata/{{g_role}}/rclone'
+        path: '/opt/appdata/{{amg_role}}/rclone'
         state: directory
         mode: '0755'
 
-    - name: 'Check of Existance files in {{ g_role }}'
+    - name: 'Check of Existance files in {{ amg_role }}'
       stat:
-        path: '/opt/appdata/{{g_role}}/rclone/rclone.conf'
+        path: '/opt/appdata/{{amg_role}}/rclone/rclone.conf'
       register: rcp
 
-    - name: 'Remove old rclone.conf from {{ g_role }} folder'
-      shell: 'rm -rf /opt/appdata/{{g_role}}/rclone/rclone.conf'
+    - name: 'Remove old rclone.conf from {{ amg_role }} folder'
+      shell: 'rm -rf /opt/appdata/{{amg_role}}/rclone/rclone.conf'
       ignore_errors: yes
       when: rcp.stat.exists == true
 
-    - name: 'Clone rclone.config to {{ g_role }} folder' 
-      shell: 'cp -r /opt/appdata/plexguide/rclone.conf /opt/appdata/{{g_role}}/rclone/rclone.conf'
+    - name: 'Clone rclone.config to {{ amg_role }} folder' 
+      shell: 'cp -r /opt/appdata/plexguide/rclone.conf /opt/appdata/{{amg_role}}/rclone/rclone.conf'
       ignore_errors: yes
 
     # MAIN DEPLOYMENT
     # #############################################################
-    - name: 'Deploying {{g_role}}'
+    - name: 'Deploying {{amg_role}}'
       docker_container:
-        name: '{{g_role}}'
+        name: '{{amg_role}}'
         image: '{{image}}'
         pull: yes
-        volumes: '{{g_volumes}}'
-        env: '{{g_env}}'
+        volumes: '{{amg_volumes}}'
+        env: '{{amg_env}}'
         capabilities:
           - 'SYS_TIME'
           - 'SYS_NICE'
