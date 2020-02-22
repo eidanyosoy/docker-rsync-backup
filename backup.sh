@@ -24,7 +24,7 @@ LOGS=/log
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
- -avzhe --numeric-ids --log-file=${LOGS}/rsync.log"
+ -avzhe --numeric-ids"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
@@ -71,7 +71,7 @@ do_rsync()
 {
  # shellcheck disable=SC2086
  # shellcheck disable=SC2164
-  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}/" "$ARCHIVEROOT"
+  rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}/" "$ARCHIVEROOT" >> ${LOGS}/rsync.log
 }
 
 tar_gz()
