@@ -22,11 +22,9 @@ PIDFILE=/var/run/backup.pid
 LOGS=/log
 
 # Options to pass to rsync
-OPTIONS="--force --ignore-errors --delete-before \
+OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
- --backup --backup-dir=$ARCHIVEROOT \
- -aHAXxv --numeric-ids --progress \
- --log-file=${LOGS}/rsync.log"
+ -avzhe --numeric-ids --log-file=${LOGS}/rsync.log"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
@@ -42,8 +40,16 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
 INCREMENT=$(date +%Y-%m-%d)
 
 # Make sure our backup tree exists
-install -d "${ARCHIVEROOT}"
-echo "Installed ${ARCHIVEROOT}"
+if [ -d "${ARCHIVEROOT}" ]; then
+  rm -rf "${ARCHIVEROOT}" >/dev/null 2>&1
+  install -d "${ARCHIVEROOT}"
+  echo "Installed ${ARCHIVEROOT}"
+  chmod -R 777 "${ARCHIVEROOT}"
+else 
+  install -d "${ARCHIVEROOT}"
+  echo "Installed ${ARCHIVEROOT}"
+  chmod -R 777 "${ARCHIVEROOT}"
+fi
 
 # Make sure Log folder exist 
   if [ -d "${LOGS}" ]; then
@@ -112,8 +118,8 @@ if [ -f $rrc ]; then
   echo "$(date) : Upload Backup done"
   remove_old_backups
   echo "$(date) : Purge Old Backups done"
-  ##remove_old_folder
-  ##echo "$(date) : Old Backup Folder removed  
+  remove_old_folder
+  echo "$(date) : Old Backup Folder removed  
 else
   echo "$(date) : NO rclone.conf Found"
   echo "$(date) : Backups not Uploaded"
@@ -142,12 +148,16 @@ rsync_log()
 {
 tail -n 2 ${LOGS}/rsync.log
 }
+
+
+
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
   echo "$(date): Backup already running, remove PID file to rerun"
   exit
 else
   touch $PIDFILE;
+  precheck
   # Now the actual transfer
   do_rsync
   echo "$(date) : Rsync Backup done"
