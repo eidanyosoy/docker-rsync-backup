@@ -151,6 +151,7 @@ if [ -f $PIDFILE ]; then
 else
   touch $PIDFILE;
   # Now the actual transfer
+  echo "$(date) : Rsync Backup is starting"
   do_rsync
   echo "$(date) : Rsync Backup done"
   echo "$(rsync_log)"
