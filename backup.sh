@@ -122,9 +122,7 @@ if [ -f $rrc ]; then
   upload_tar
   echo "$(date) : Upload Backup done"
   remove_old_backups
-  echo "$(date) : Purge Old Backups done"
-  remove_old_folder
-  echo "$(date) : Old Backup Folder removed  
+  echo "$(date) : Purge Old Backups done"  
 else
   echo "$(date) : NO rclone.conf Found"
   echo "$(date) : Backups not Uploaded"
@@ -143,15 +141,6 @@ while read p; do
   old_backup=$(cat /tmp/old_backups)
   rclone delete ${REMOTE}:/backup-daily/$(cat /rclone/server.id)/${old_backup} ${OPT}
 done </tmp/backup_old
-}
-remove_old_folder()
-{
-for purge in `find ${ARCHIVEROOT} -maxdepth 1 -type d  | grep -v "^\.$" `; do
-  rm -rf ${purge} >/dev/null 2>&1
-  install -d "${ARCHIVEROOT}"
-  echo "Old Folder purged${ARCHIVEROOT}"
-  chmod -R 777 "${ARCHIVEROOT}"
-done
 }
 
 ##EXECUTED PART
