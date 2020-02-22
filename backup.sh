@@ -161,7 +161,6 @@ if [ -f $PIDFILE ]; then
   exit
 else
   touch $PIDFILE;
-  precheck
   # Now the actual transfer
   do_rsync
   echo "$(date) : Rsync Backup done"
