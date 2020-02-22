@@ -61,6 +61,11 @@ fi
     echo "$(date) : Installed $LOGS - done"
   fi
 
+rsync_log()
+{
+tail -n 2 ${LOGS}/rsync.log
+}
+
 # Our actual rsyncing function
 do_rsync()
 {
@@ -141,16 +146,15 @@ done </tmp/backup_old
 }
 remove_old_folder()
 {
-#NEED ADDON PART
-  find ${ARCHIVEROOT} -mindepth 1 -type d 2>/dev/null -exec rm -rf {} \;
+for purge in `find ${ARCHIVEROOT} -maxdepth 1 -type d  | grep -v "^\.$" `; do
+  rm -rf ${purge} >/dev/null 2>&1
+  install -d "${ARCHIVEROOT}"
+  echo "Old Folder purged${ARCHIVEROOT}"
+  chmod -R 777 "${ARCHIVEROOT}"
+done
 }
-rsync_log()
-{
-tail -n 2 ${LOGS}/rsync.log
-}
 
-
-
+##EXECUTED PART
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
   echo "$(date): Backup already running, remove PID file to rerun"
