@@ -22,10 +22,11 @@ PIDFILE=/var/run/backup.pid
 LOGS=/log
 
 # Options to pass to rsync
-OPTIONS="--force --ignore-errors --delete \
+OPTIONS="--force --ignore-errors --delete-before \
  --exclude-from=/root/backup_excludes \
  --backup --backup-dir=$ARCHIVEROOT \
- -aHAXx --log-file=${LOGS}/rsync.log"
+ -aHAXxv --numeric-ids --progress \
+ --log-file=${LOGS}/rsync.log"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
