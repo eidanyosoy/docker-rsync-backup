@@ -41,7 +41,6 @@ INCREMENT=$(date +%Y-%m-%d)
 
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
-  rm -rf "${ARCHIVEROOT}" >/dev/null 2>&1
   install -d "${ARCHIVEROOT}"
   echo "Installed ${ARCHIVEROOT}"
   chmod -R 777 "${ARCHIVEROOT}"
@@ -123,34 +122,30 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else
   REMOTE="gdrive"
 fi
-sid="/rclone/server.id"
-if [ -f $sid ]; then
-  echo "$(date) : ServerID Set to $(cat /rclone/server.id)"
-else
-  echo backup >/rclone/server.id
-  echo "$(date) : NO ServerID Found"
-fi
+
+echo "Server ID set to ${SERVER_ID}"
+
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 
 while read p; do
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/$(cat /rclone/server.id)/${tar} ${OPTIONSRCLONE}
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/$(cat /rclone/server.id)/${INCREMENT}/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/${tar} ${OPTIONSRCLONE}
 done </tmp/tar_folders
 }
 
 remove_old_backups()
 {
 OPT="--config /rclone/rclone.conf"
-rclone lsf ${REMOTE}:/backup-daily/$(cat /rclone/server.id)/ ${OPT} | head -n -14 >/tmp/backup_old
+rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n {BACKUP_HOLD} >/tmp/backup_old
 p="/tmp/backup_old"
 
 while read p; do
   echo $p >/tmp/old_backups
   old_backup=$(cat /tmp/old_backups)
-  rclone delete ${REMOTE}:/backup-daily/$(cat /rclone/server.id)/${old_backup} ${OPT}
+  rclone delete ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPT}
 done </tmp/backup_old
 }
 
@@ -160,7 +155,7 @@ upload_tar_part2()
 {
 rrc="/rclone/rclone.conf"
 if [ -f $rrc ]; then
-  echo "$(date) : Start of Executed Part for Upload and Remove 
+  echo "$(date) : Start of Executed Part for Upload and Remove"
   remove_folder
   echo "$(date) : Remove left over Folder done"
   upload_tar

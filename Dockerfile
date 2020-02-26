@@ -10,7 +10,9 @@ ENV BACKUPDIR="/home" \
     CRON_TIME="0 1 * * *" \
     LOGS="/log" \
     SET_CONTAINER_TIMEZONE="true" \
-    CONTAINER_TIMEZONE="Europe/Berlin"
+    CONTAINER_TIMEZONE="Europe/Berlin" \
+    BACKUP_HOLD="15" \
+    SERVER_ID="docker"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \

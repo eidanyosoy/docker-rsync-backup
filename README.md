@@ -9,6 +9,8 @@ Basic backup of `/home` to `/mnt/backup_drive`
       --volume /mnt/rsyncbackup/rclone:/rclone \
       -env SET_CONTAINER_TIMEZONE=true \
       -env CONTAINER_TIMEZONE=Europe/Stockholm \
+      -env BACKUP_HOLD=15 \
+      -env SERVER_ID=docker \
       mrdoob/rsyncbackup
 
 
@@ -48,13 +50,13 @@ examples. Here is a full list of the variables, default values and uses.
 
 
     BACKUPDIR ("/home"): 
-      Directory path to be archived. Usually remote or a mounted volume.
+       Directory path to be archived. Usually remote or a mounted volume.
 
     SSH_PORT ("22"): 
-      Change if a non-standard SSH port number is used.
+       Change if a non-standard SSH port number is used.
 
     SSH_IDENTITY_FILE ("/root/.ssh/id_rsa"): 
-      Change to use a key mounted from the host.
+       Change to use a key mounted from the host.
  
     ARCHIVEROOT ("/backup"): 
        It's good to mount a volume at this path. A folder structure like this will be created:
@@ -62,17 +64,28 @@ examples. Here is a full list of the variables, default values and uses.
         └── each subfolder 
 
     EXCLUDES (""): 
-      Semicolon separated list of exclude patterns. Use the format
-      described in the FILTER RULES section of the rsync man page. A limitation
-      is that semicolon may not be present in any of the patterns.
+       Semicolon separated list of exclude patterns. Use the format
+       described in the FILTER RULES section of the rsync man page. A limitation
+       is that semicolon may not be present in any of the patterns.
 
     CRON_TIME ("0 1 * * *"): 
-      The time to do backups. The default is at 01:00 every night.
+       The time to do backups. The default is at 01:00 every night.
 
     CONTAINER_TIMEZONE=Europe/Stockholm
-      You can choose any timezone you want , for find the correct timezone 
-      In your case  ( sudo cat /etc/timecone )
+       You can choose any timezone you want , for find the correct timezone 
+       In your case  ( sudo cat /etc/timecone )
 
+    BACKUP_HOLD=15
+       Remove older Backups from GDrice or GCrypt 
+
+    SERVER_ID=docker
+       if you have multiple servers, this is advantageous 
+       for the assignments at the end.
+
+
+THIS IS A *** Work In Progress *** 
+
+in the end this means that there could be updates daily to weekly, as well as possible errors or the like,
 
 
 # Support
