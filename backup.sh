@@ -24,7 +24,7 @@ LOGS=/log
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
- -avzheP --numeric-ids --ignore-times "
+ -avzheP --numeric-ids --ignore-times --existing"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
@@ -80,10 +80,36 @@ tar_gz()
  # shellcheck disable=SC2164
  # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
- for dir_tar in `find . -maxdepth 1 -type d  | grep -v "^\.$" `; do
+ for dir_tar in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
     echo "$(date) : Tar Backup running for ${dir_tar}"
     tar ${OPTIONSTAR} -C ${dir_tar} -cf ${dir_tar}.tar ./ >> ${LOGS}/tar.log
     echo "$(date) : Tar Backup of ${dir_tar} successfull"
+ done
+}
+### left over remove before upload 
+remove_folder()
+{
+# shellcheck disable=SC2086
+ # shellcheck disable=SC2164
+ # shellcheck disable=SC2006
+cd ${ARCHIVEROOT}
+ for dirrm in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
+    echo "$(date) : Remove folder running for ${dirrm}"
+    rm -rf ${dirrm} >> ${LOGS}/removefolder.log
+    echo "$(date) : Remove folder of ${dirrm} successfull"
+ done
+}
+### left over remove after upload
+remove_tar()
+{
+# shellcheck disable=SC2086
+ # shellcheck disable=SC2164
+ # shellcheck disable=SC2006
+cd ${ARCHIVEROOT}
+ for tarrm in `find . -maxdepth 1 -type f | grep ".tar" `; do
+    echo "$(date) : Remove running for ${tarrm}"
+    rm -rf ${tarrm} >> ${LOGS}/removetar.log
+    echo "$(date) : Remove of ${tarrm} successfull"
  done
 }
 
@@ -115,21 +141,6 @@ while read p; do
 done </tmp/tar_folders
 }
 
-upload_tar_part2()
-{
-rrc="/rclone/rclone.conf"
-if [ -f $rrc ]; then
-  upload_tar
-  echo "$(date) : Upload Backup done"
-  remove_old_backups
-  echo "$(date) : Purge Old Backups done"  
-else
-  echo "$(date) : NO rclone.conf Found"
-  echo "$(date) : Backups not Uploaded"
-  echo "$(date) : Backups are overwritted"
-fi
-}
-
 remove_old_backups()
 {
 OPT="--config /rclone/rclone.conf"
@@ -143,7 +154,30 @@ while read p; do
 done </tmp/backup_old
 }
 
+
 ##EXECUTED PART
+upload_tar_part2()
+{
+rrc="/rclone/rclone.conf"
+if [ -f $rrc ]; then
+  echo "$(date) : Start of Executed Part for Upload and Remove 
+  remove_folder
+  echo "$(date) : Remove left over Folder done"
+  upload_tar
+  echo "$(date) : Upload Backup done"
+  remove_old_backups
+  echo "$(date) : Purge Old Backups done"
+  remove_tar
+  echo "$(date) : Purge old tar files done"
+else
+  echo "$(date) : NO rclone.conf Found"
+  echo "$(date) : Backups not Uploaded"
+  echo "$(date) : Backups are overwritted"
+fi
+}
+######
+
+
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
   echo "$(date): Backup already running, remove PID file to rerun"
