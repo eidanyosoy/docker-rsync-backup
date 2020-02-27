@@ -139,7 +139,7 @@ done </tmp/tar_folders
 remove_old_backups()
 {
 OPT="--config /rclone/rclone.conf"
-rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n {BACKUP_HOLD} >/tmp/backup_old
+rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_old
 p="/tmp/backup_old"
 
 while read p; do
