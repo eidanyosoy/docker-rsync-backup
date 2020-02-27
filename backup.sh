@@ -24,7 +24,7 @@ LOGS=/log
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
- -avzheP --numeric-ids --ignore-times --existing"
+ -avzheP --numeric-ids --ignore-times"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
