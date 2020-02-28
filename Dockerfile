@@ -13,7 +13,7 @@ ENV BACKUPDIR="/home" \
     CONTAINER_TIMEZONE="Europe/Berlin" \
     BACKUP_HOLD="15" \
     SERVER_ID="docker" \
-    RSYNC_COMPRESS_LEVEL="1"
+    RSYNC_COMPRESS_LEVEL="2"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
@@ -40,8 +40,6 @@ RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/reposi
         tzdata \
         openntpd \
         grep
-
-RUN mkdir -p /log
 
 RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
     unzip rclone.zip && rm rclone.zip && \
