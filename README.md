@@ -9,7 +9,6 @@ Basic backup of `/home` to `/mnt/backup_drive`
       --volume /mnt/rsyncbackup/rclone:/rclone \
       -env SET_CONTAINER_TIMEZONE=true \
       -env CONTAINER_TIMEZONE=Europe/Stockholm \
-      -env RCLONE_UPDATE=@weekly \ 
       -env BACKUP_HOLD=15 \
       -env SERVER_ID=docker \
       -env RSYNC_COMPRESS_LEVEL=1 \
@@ -83,9 +82,6 @@ examples. Here is a full list of the variables, default values and uses.
     SERVER_ID=docker
        if you have multiple servers, this is advantageous 
        for the assignments at the end.
-       
-    RCLONE_UPDATE
-       The time to update rclone insatteld version . The default is weekly.
 
     RSYNC_COMPRESS_LEVEL
        this starts from 1 - 9. higher compression levels use more resources, The default is 2
