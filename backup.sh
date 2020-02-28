@@ -147,7 +147,23 @@ while read p; do
   rclone delete ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPT}
 done </tmp/backup_old
 }
-
+update_rclone()
+{
+rcversion="$(curl -s https://api.github.com/repos/rclone/rclone/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')"
+rcstored="$(rclone --version | awk '{print $2}' | tail -n 3 | head -n 1)"
+if [ "$rcversion" != "$rcstored" ]; then 
+    echo "$(date) : rclone will be updated to ${rcversion}"
+    wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate 1>/dev/null 2>&1
+    unzip rclone.zip 1>/dev/null 2>&1
+	   rm rclone.zip 1>/dev/null 2>&1
+    mv rclone*/rclone /usr/bin 1>/dev/null 2>&1
+	   rm -r rclone* 1>/dev/null 2>&1
+    mkdir -p /rclone 1>/dev/null 2>&1
+    echo "$(date) : rclone update >> done "
+else
+    echo "$(date) : rclone is up to date"
+fi
+}
 ##EXECUTED PART
 upload_tar_part2()
 {
@@ -162,6 +178,9 @@ if [ -f $rrc ]; then
   echo "$(date) : purge old backups >> done"
   remove_tar
   echo "$(date) : purge old tar files >> done"
+  echo "$(date) : check rclone version >> starting"
+  update_rclone
+  echo "$(date) : check rclone version >> done"
 else
   echo "$(date) : WARNING = no rclone.conf found"
   echo "$(date) : WARNING = Backups not uploaded to any place"
