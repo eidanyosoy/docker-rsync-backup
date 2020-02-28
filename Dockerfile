@@ -50,10 +50,8 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.z
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
-COPY update.sh /update.sh
 COPY backup_excludes /root/backup_excludes
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 CMD /backup.sh && crond -f
-CMD /update.sh && crond -f
