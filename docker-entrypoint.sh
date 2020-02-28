@@ -1,9 +1,5 @@
 #!/bin/sh
-rm -rf /crontab.conf
-chmod -R 777 /update.sh && chmod -R 777 /backup.sh
-echo "
-${CRON_TIME} /backup.sh
-${RCLONE_UPDATE} /update.sh" >> /crontab.conf
+echo "${CRON_TIME} /backup.sh" > /crontab.conf
 crontab /crontab.conf
 
 # Generate ssh keys if needed
