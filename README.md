@@ -39,10 +39,10 @@ For use on a normal machine, use the `latest` tag.
           It will automatically  read if gdrive or gcrypted can used 
           for storing your backup on your GSuite Account 
 
-          It will also read when  no rclone config is in the folder
-          then it will only create the tar fike
- 
 
+          It will also read when no rclone config is in the folder
+          then it will only create the tar files
+ 
 
 ## Environment variables
 
