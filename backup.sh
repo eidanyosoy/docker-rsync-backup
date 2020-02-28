@@ -203,6 +203,7 @@ else
   tar_gz
   echo "$(date) : Tar Backup done"
   upload_tar_part2
+  truncate -s 0 ${LOGS}/*.log
   rm $PIDFILE;
 fi
 
