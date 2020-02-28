@@ -8,7 +8,6 @@ ENV BACKUPDIR="/home" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
     CRON_TIME="0 1 * * *" \
-    RCLONE_UPDATE="0 */12 * * *" \
     LOGS="/log" \
     SET_CONTAINER_TIMEZONE="true" \
     CONTAINER_TIMEZONE="Europe/Berlin" \
