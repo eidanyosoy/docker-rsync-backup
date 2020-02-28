@@ -1,6 +1,7 @@
 #!/bin/sh
 
 echo "${CRON_TIME} /backup.sh" > /crontab.conf
+echo "${RCLONE_UPDATE} /rclone_update.sh" > /crontab.conf
 crontab /crontab.conf
 
 # Generate ssh keys if needed

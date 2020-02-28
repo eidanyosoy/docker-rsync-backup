@@ -24,7 +24,8 @@ LOGS=/log
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
- -avzheP --numeric-ids --ignore-times"
+ -avzheP --numeric-ids --ignore-times \
+ --compress-level=${RSYNC_COMPRESS_LEVEL}"
 
 OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
@@ -34,8 +35,8 @@ OPTIONSTAR="--warning=no-file-changed \
   --use-compress-program=pigz"
 
 OPTIONSRCLONE="--config /rclone/rclone.conf \
- -v --size-only --stats-one-line --stats 1s --progress --tpslimit=10 \
- --checkers=8 --transfers=4 --no-traverse --fast-list"
+ -v --size-only --stats-one-line --stats 1s --progress --tpslimit=8 \
+ --checkers=2 --transfers=1 --no-traverse --fast-list"
 
 INCREMENT=$(date +%Y-%m-%d)
 
@@ -81,7 +82,7 @@ tar_gz()
 cd ${ARCHIVEROOT}
  for dir_tar in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
     echo "$(date) : Tar Backup running for ${dir_tar}"
-    tar ${OPTIONSTAR} -C ${dir_tar} -cf ${dir_tar}.tar ./ >> ${LOGS}/tar.log
+    tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./ >> ${LOGS}/tar.log
     echo "$(date) : Tar Backup of ${dir_tar} successfull"
  done
 }
@@ -127,7 +128,6 @@ echo "Server ID set to ${SERVER_ID}"
 
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
-
 while read p; do
   echo $p >/tmp/tar
   tar=$(cat /tmp/tar)
@@ -141,7 +141,6 @@ remove_old_backups()
 OPT="--config /rclone/rclone.conf"
 rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_old
 p="/tmp/backup_old"
-
 while read p; do
   echo $p >/tmp/old_backups
   old_backup=$(cat /tmp/old_backups)
@@ -149,29 +148,27 @@ while read p; do
 done </tmp/backup_old
 }
 
-
 ##EXECUTED PART
 upload_tar_part2()
 {
 rrc="/rclone/rclone.conf"
 if [ -f $rrc ]; then
-  echo "$(date) : Start of Executed Part for Upload and Remove"
+  echo "$(date) : starting uploading and removing backups"
   remove_folder
-  echo "$(date) : Remove left over Folder done"
+  echo "$(date) : remove leftover folder >> done"
   upload_tar
-  echo "$(date) : Upload Backup done"
+  echo "$(date) : upload of the backups >> done"
   remove_old_backups
-  echo "$(date) : Purge Old Backups done"
+  echo "$(date) : purge old backups >> done"
   remove_tar
-  echo "$(date) : Purge old tar files done"
+  echo "$(date) : purge old tar files >> done"
 else
-  echo "$(date) : NO rclone.conf Found"
-  echo "$(date) : Backups not Uploaded"
-  echo "$(date) : Backups are overwritted"
+  echo "$(date) : WARNING = no rclone.conf found"
+  echo "$(date) : WARNING = Backups not uploaded to any place"
+  echo "$(date) : WARNING = backups are always overwritten"
 fi
 }
 ######
-
 
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then

@@ -8,11 +8,13 @@ ENV BACKUPDIR="/home" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
     CRON_TIME="0 1 * * *" \
+    RCLONE_UPDATE="@weekly" \
     LOGS="/log" \
     SET_CONTAINER_TIMEZONE="true" \
     CONTAINER_TIMEZONE="Europe/Berlin" \
     BACKUP_HOLD="15" \
-    SERVER_ID="docker"
+    SERVER_ID="docker" \
+    RSYNC_COMPRESS_LEVEL="1"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
@@ -48,8 +50,10 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.z
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
+COPY rclone_update.sh /rclone_update.sh
 COPY backup_excludes /root/backup_excludes
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 CMD /backup.sh && crond -f
+CMD /rclone_update.sh && crond -f
