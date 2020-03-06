@@ -153,12 +153,12 @@ rcversion="$(curl -s https://api.github.com/repos/rclone/rclone/releases/latest 
 rcstored="$(rclone --version | awk '{print $2}' | tail -n 3 | head -n 1)"
 if [ "$rcversion" != "$rcstored" ]; then 
     echo "$(date) : rclone will be updated to ${rcversion}"
-    wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate 1>/dev/null 2>&1
-    unzip rclone.zip 1>/dev/null 2>&1
-	   rm rclone.zip 1>/dev/null 2>&1
-    mv rclone*/rclone /usr/bin 1>/dev/null 2>&1
-	   rm -r rclone* 1>/dev/null 2>&1
-    mkdir -p /rclone 1>/dev/null 2>&1
+        wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate 1>/dev/null 2>&1
+        unzip rclone.zip 1>/dev/null 2>&1
+        rm rclone.zip 1>/dev/null 2>&1
+        mv rclone*/rclone /usr/bin 1>/dev/null 2>&1
+        rm -r rclone* 1>/dev/null 2>&1
+        mkdir -p /rclone 1>/dev/null 2>&1
     echo "$(date) : rclone update >> done "
 else
     echo "$(date) : rclone is up to date"
