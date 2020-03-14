@@ -72,7 +72,6 @@ if [ -d ${LOGS} ]; then
    truncate -s 0 ${LOGS}/*.log
 fi
 }
-
 rsync_log()
 {
 tail -n 2 ${LOGS}/rsync.log
@@ -137,14 +136,12 @@ if grep -q gcrypt /rclone/rclone.conf; then
 fi
 
 echo "Server ID set to ${SERVER_ID}"
-
 #tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 #p="/tmp/tar_folders"
 #echo $p >/tmp/tar
 #tar=$(cat /tmp/tar)
 #while read p; do
 #done </tmp/tar_folders
-
 if [ ${REMOTE} == "gcrypt" ]; then
    rclone copyto ${ARCHIVEROOT}/ ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
    rclone moveto ${ARCHIVEROOT}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE}
@@ -152,13 +149,11 @@ else
    rclone moveto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
    rclone sync ${REMOTE}:/backup/${SERVER_ID}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE} --drive-server-side-across-configs
 fi
-
 }
-
 remove_old_backups()
 {
 OPT="--config /rclone/rclone.conf"
-rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_oldp="/tmp/backup_old"
+rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_old
 p="/tmp/backup_old"
 while read p; do
   echo $p >/tmp/old_backups
