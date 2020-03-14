@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #########################################################
-# Script to do incremental rsync backups
+# Script to do rsync backups
 # Adapted from script found on the rsync.samba.org
 # Brian Hone 3/24/2002
 # Updated 2015-10-09 by Johan Swetzén
@@ -11,7 +11,7 @@
 
 # CRON_TIME (default: "0 1 * * *")
 # - Time of day to do backup
-# - Specified in UTC
+# - Specified in Timezone
 
 #########################################
 # From here on out, you probably don't  #
@@ -35,8 +35,13 @@ OPTIONSTAR="--warning=no-file-changed \
   --use-compress-program=pigz"
 
 OPTIONSRCLONE="--config /rclone/rclone.conf \
- -v --size-only --stats-one-line --stats 1s --progress --tpslimit=8 \
- --checkers=2 --transfers=1 --no-traverse --fast-list"
+  --size-only --tpslimit=8 \
+  --checkers=2 --transfers=1 \
+  --no-traverse --fast-list \
+  --log-file=${LOGS}/rclone.log \
+  --log-level=INFO --stats=5s \
+  --stats-file-name-length=0 \
+  --bwlimit=20M --drive-chunk-size=32M"
 
 INCREMENT=$(date +%Y-%m-%d)
 
@@ -44,11 +49,11 @@ INCREMENT=$(date +%Y-%m-%d)
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
   echo "Installed ${ARCHIVEROOT}"
-  chmod -R 777 "${ARCHIVEROOT}"
+  chmod 777 "${ARCHIVEROOT}"
 else 
   install -d "${ARCHIVEROOT}"
   echo "Installed ${ARCHIVEROOT}"
-  chmod -R 777 "${ARCHIVEROOT}"
+  chmod 777 "${ARCHIVEROOT}"
 fi
 
 # Make sure Log folder exist 
@@ -60,6 +65,13 @@ fi
     install -d "${LOGS}"
     echo "$(date) : Installed $LOGS - done"
   fi
+
+remove_logs()
+{
+if [ -d ${LOGS} ]; then
+   truncate -s 0 ${LOGS}/*.log
+fi
+}
 
 rsync_log()
 {
@@ -90,8 +102,8 @@ cd ${ARCHIVEROOT}
 remove_folder()
 {
 # shellcheck disable=SC2086
- # shellcheck disable=SC2164
- # shellcheck disable=SC2006
+# shellcheck disable=SC2164
+# shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for dirrm in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
     echo "$(date) : Remove folder running for ${dirrm}"
@@ -103,8 +115,8 @@ cd ${ARCHIVEROOT}
 remove_tar()
 {
 # shellcheck disable=SC2086
- # shellcheck disable=SC2164
- # shellcheck disable=SC2006
+# shellcheck disable=SC2164
+# shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for tarrm in `find . -maxdepth 1 -type f | grep ".tar" `; do
     echo "$(date) : Remove running for ${tarrm}"
@@ -126,25 +138,33 @@ fi
 
 echo "Server ID set to ${SERVER_ID}"
 
-tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
-p="/tmp/tar_folders"
-while read p; do
-  echo $p >/tmp/tar
-  tar=$(cat /tmp/tar)
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/${tar} ${OPTIONSRCLONE}
-  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/${tar} ${OPTIONSRCLONE}
-done </tmp/tar_folders
+#tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
+#p="/tmp/tar_folders"
+#echo $p >/tmp/tar
+#tar=$(cat /tmp/tar)
+#while read p; do
+#done </tmp/tar_folders
+
+if [ ${REMOTE} == "gcrypt" ]; then
+   rclone copyto ${ARCHIVEROOT}/ ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
+   rclone moveto ${ARCHIVEROOT}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE}
+else
+   rclone moveto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
+   rclone sync ${REMOTE}:/backup/${SERVER_ID}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE} --drive-server-side-across-configs
+fi
+
 }
 
 remove_old_backups()
 {
 OPT="--config /rclone/rclone.conf"
-rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_old
+rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_oldp="/tmp/backup_old"
 p="/tmp/backup_old"
 while read p; do
   echo $p >/tmp/old_backups
   old_backup=$(cat /tmp/old_backups)
   rclone delete ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPT}
+  rclone rmdirs ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT}
 done </tmp/backup_old
 }
 update_rclone()
@@ -161,7 +181,7 @@ if [ "$rcversion" != "$rcstored" ]; then
         mkdir -p /rclone 1>/dev/null 2>&1
     echo "$(date) : rclone update >> done "
 else
-    echo "$(date) : rclone is up to date"
+    echo "$(date) : rclone is up to date || ${rcstored}"
 fi
 }
 ##EXECUTED PART
@@ -195,6 +215,8 @@ if [ -f $PIDFILE ]; then
   exit
 else
   touch $PIDFILE;
+  echo "$(date) : remove old log files"
+  remove_logs
   # Now the actual transfer
   echo "$(date) : Rsync Backup is starting"
   do_rsync
