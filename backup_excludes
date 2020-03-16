@@ -1,26 +1,26 @@
-/home/plex/database/Library/Application Support/Plex Media Server/Cache/PhotoTranscoder
-/home/plex/database/Library/Application Support/Plex Media Server/Cache/Transcode
-/home/plex/database/Library/Application Support/Plex Media Server/Logs
-/home/plex/database/Library/Application Support/Plex Media Server/Crash Reports
-/home/plex/database/Library/Application Support/Plex Media Server/Metadata/*.bif
-/home/plex/database/Library/Application Support/Plex Media Server/Media/*.bif
-/home/plex/database/Library/Logs/Plex Media Server/
-/home/plex/database/Library/Application Support/Plex Media Server/Plug-ins
-/home/plex/transcoding-temp
-/home/nzbget/nzbget.log
-/home/radarr/logs
-/home/sonarr/logs
-/home/lidarr/logs
-/home/log
-/home/logs
-/home/Log
-/home/Logs
-/home/backup
-/home/backups
-/home/Backup
-/home/Backups
-/home/transcodes
-/home/Transcodes
+./plex/database/Library/Application Support/Plex Media Server/Cache/PhotoTranscoder
+./plex/database/Library/Application Support/Plex Media Server/Cache/Transcode
+./plex/database/Library/Application Support/Plex Media Server/Logs
+./plex/database/Library/Application Support/Plex Media Server/Crash Reports
+./plex/database/Library/Application Support/Plex Media Server/Metadata/*.bif
+./plex/database/Library/Application Support/Plex Media Server/Media/*.bif
+./plex/database/Library/Logs/Plex Media Server/
+./plex/database/Library/Application Support/Plex Media Server/Plug-ins
+./plex/transcoding-temp
+./nzbget/nzbget.log
+./radarr/logs
+./sonarr/logs
+./lidarr/logs
+./log
+./logs
+./Log
+./Logs
+./backup
+./backups
+./Backup
+./Backups
+./transcodes
+./Transcodes
 *.bif
 *.log
 *.logs

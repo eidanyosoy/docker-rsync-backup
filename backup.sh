@@ -31,17 +31,21 @@ OPTIONSTAR="--warning=no-file-changed \
   --ignore-failed-read \
   --absolute-names \
   --warning=no-file-removed \
-  --exclude-from=/root/backup_excludes
+  --exclude-from=/root/backup_excludes \
   --use-compress-program=pigz"
 
 OPTIONSRCLONE="--config /rclone/rclone.conf \
-  --size-only --tpslimit=8 \
-  --checkers=2 --transfers=1 \
+  --checkers=4 --transfers=2 \
   --no-traverse --fast-list \
   --log-file=${LOGS}/rclone.log \
   --log-level=INFO --stats=5s \
   --stats-file-name-length=0 \
-  --bwlimit=20M --drive-chunk-size=32M"
+  --user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' \
+  --tpslimit=10 --tpslimit-burst=10 \
+  --drive-chunk-size=128M  \
+  --drive-acknowledge-abuse=true \
+  --drive-stop-on-upload-limit \
+  --bwlimit=20M --use-mmap"
 
 INCREMENT=$(date +%Y-%m-%d)
 
@@ -136,19 +140,14 @@ if grep -q gcrypt /rclone/rclone.conf; then
 fi
 
 echo "Server ID set to ${SERVER_ID}"
-#tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
-#p="/tmp/tar_folders"
-#echo $p >/tmp/tar
-#tar=$(cat /tmp/tar)
-#while read p; do
-#done </tmp/tar_folders
-if [ ${REMOTE} == "gcrypt" ]; then
-   rclone copyto ${ARCHIVEROOT}/ ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
-   rclone moveto ${ARCHIVEROOT}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE}
-else
-   rclone moveto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/ ${OPTIONSRCLONE}
-   rclone sync ${REMOTE}:/backup/${SERVER_ID}/ ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/ ${OPTIONSRCLONE} --drive-server-side-across-configs
-fi
+tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
+p="/tmp/tar_folders"
+while read p; do
+  echo $p >/tmp/tar
+  tar=$(cat /tmp/tar)
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup/${SERVER_ID}/${tar} ${OPTIONSRCLONE}
+  rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/${tar} ${OPTIONSRCLONE}
+done </tmp/tar_folders
 }
 remove_old_backups()
 {
@@ -159,7 +158,6 @@ while read p; do
   echo $p >/tmp/old_backups
   old_backup=$(cat /tmp/old_backups)
   rclone delete ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPT}
-  rclone rmdirs ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT}
 done </tmp/backup_old
 }
 update_rclone()
@@ -220,7 +218,6 @@ else
   tar_gz
   echo "$(date) : Tar Backup done"
   upload_tar_part2
-  truncate -s 0 ${LOGS}/*.log
   rm $PIDFILE;
 fi
 
