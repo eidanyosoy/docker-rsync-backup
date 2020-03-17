@@ -47,6 +47,17 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
   --drive-stop-on-upload-limit \
   --bwlimit=20M --use-mmap"
 
+OPTIONSREMOVE="--config /rclone/rclone.conf \
+  --checkers=4 --no-traverse --fast-list \
+  --log-file=${LOGS}/rclone-remove.log \
+  --log-level=INFO --stats=5s \
+  --stats-file-name-length=0 \
+  --user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' \
+  --tpslimit=10 --tpslimit-burst=10 \
+  --drive-chunk-size=128M  \
+  --drive-acknowledge-abuse=true \
+  --use-mmap"
+
 INCREMENT=$(date +%Y-%m-%d)
 
 # Make sure our backup tree exists
@@ -64,10 +75,12 @@ fi
   if [ -d "${LOGS}" ]; then
    install -d "${LOGS}"
    echo "$(date) : $LOGS exist - done"
+   chmod 777 "${LOGS}"
   else 
     echo "$(date) : $LOGS not exist - create runs"
     install -d "${LOGS}"
     echo "$(date) : Installed $LOGS - done"
+    chmod 777 "${LOGS}"
   fi
 
 remove_logs()
@@ -151,13 +164,17 @@ done </tmp/tar_folders
 }
 remove_old_backups()
 {
-OPT="--config /rclone/rclone.conf"
-rclone lsf ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPT} | head -n ${BACKUP_HOLD} >/tmp/backup_old
+if grep -q gcrypt /rclone/rclone.conf; then
+  REMOTE="gcrypt"
+ else
+  REMOTE="gdrive"
+fi
+rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n "${BACKUP_HOLD}" >/tmp/backup_old
 p="/tmp/backup_old"
 while read p; do
   echo $p >/tmp/old_backups
   old_backup=$(cat /tmp/old_backups)
-  rclone delete ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPT}
+  rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
 done </tmp/backup_old
 }
 update_rclone()
