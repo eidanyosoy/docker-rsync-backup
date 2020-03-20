@@ -40,7 +40,6 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
   --log-file=${LOGS}/rclone.log \
   --log-level=INFO --stats=5s \
   --stats-file-name-length=0 \
-  --user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' \
   --tpslimit=10 --tpslimit-burst=10 \
   --drive-chunk-size=128M  \
   --drive-acknowledge-abuse=true \
@@ -52,7 +51,6 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
   --log-file=${LOGS}/rclone-remove.log \
   --log-level=INFO --stats=5s \
   --stats-file-name-length=0 \
-  --user-agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36' \
   --tpslimit=10 --tpslimit-burst=10 \
   --drive-chunk-size=128M  \
   --drive-acknowledge-abuse=true \
