@@ -167,13 +167,17 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else
   REMOTE="gdrive"
 fi
-rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n "${BACKUP_HOLD}" >/tmp/backup_old
-p="/tmp/backup_old"
-while read p; do
-  echo $p >/tmp/old_backups
-  old_backup=$(cat /tmp/old_backups)
-  rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
-done </tmp/backup_old
+if [ $(rclone ls -1 ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} -type d | wc -l) -gt ${BACKUP_HOLD} ]; then
+    rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n ${BACKUP_HOLD} >/tmp/backup_old
+    p="/tmp/backup_old"
+    while read p; do
+      echo $p >/tmp/old_backups
+      old_backup=$(cat /tmp/old_backups)
+      rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
+    done </tmp/backup_old
+else 
+    echo "$(date) Daily Backups lower as ${BACKUP_HOLD} set"
+fi
 }
 update_rclone()
 {
