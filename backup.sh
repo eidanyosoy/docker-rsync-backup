@@ -20,6 +20,7 @@
 #########################################
 PIDFILE=/var/run/backup.pid
 LOGS=/log
+RCCONFIG=/rclone/rclone.conf
 
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
@@ -38,7 +39,7 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
   --checkers=4 --transfers=2 \
   --no-traverse --fast-list \
   --log-file=${LOGS}/rclone.log \
-  --log-level=INFO --stats=5s \
+  --log-level=INFO --stats=30s \
   --stats-file-name-length=0 \
   --tpslimit=10 --tpslimit-burst=10 \
   --drive-chunk-size=128M  \
@@ -49,7 +50,7 @@ OPTIONSRCLONE="--config /rclone/rclone.conf \
 OPTIONSREMOVE="--config /rclone/rclone.conf \
   --checkers=4 --no-traverse --fast-list \
   --log-file=${LOGS}/rclone-remove.log \
-  --log-level=INFO --stats=5s \
+  --log-level=INFO --stats=30s \
   --stats-file-name-length=0 \
   --tpslimit=10 --tpslimit-burst=10 \
   --drive-chunk-size=128M  \
@@ -79,6 +80,17 @@ fi
     install -d "${LOGS}"
     echo "$(date) : Installed $LOGS - done"
     chmod 777 "${LOGS}"
+  fi
+
+# Make sure rclone.conf exist 
+  if [ -f $RCCONFIG ]; then
+   echo "rclone config found | files will stored on your Google drive"
+   sleep 15
+  else
+    echo "$(date) : WARNING = no rclone.conf found"
+    echo "$(date) : WARNING = Backups not uploaded to any place"
+    echo "$(date) : WARNING = backups are always overwritten"
+    sleep 30
   fi
 
 remove_logs()
@@ -204,23 +216,20 @@ fi
 
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
-  echo "$(date): Backup already running, remove PID file to rerun"
-  exit
+  echo "$(date): Backup already running, remove PID file to rerun" || exit
 else
   touch $PIDFILE;
   echo "$(date) : remove old log files"
   remove_logs
-  # Now the actual transfer
   echo "$(date) : Rsync Backup is starting"
   do_rsync
   echo "$(date) : Rsync Backup done"
   echo "$(rsync_log)"
   tar_gz
   echo "$(date) : Tar Backup done"
-  ##EXECUTED PART
-  RCCONFIG=/rclone/rclone.conf
+  sleep 30
      if [ -f $RCCONFIG ]; then
-       echo "$(date) : starting uploading and removing backups"
+       echo "$(date) : starting upload and remove backups"
        remove_folder
        echo "$(date) : remove leftover folder >> done"
        upload_tar
@@ -229,10 +238,6 @@ else
        echo "$(date) : purge old backups >> done"
        remove_tar
        echo "$(date) : purge old tar files >> done"
-     else
-       echo "$(date) : WARNING = no rclone.conf found"
-       echo "$(date) : WARNING = Backups not uploaded to any place"
-       echo "$(date) : WARNING = backups are always overwritten"
      fi
   echo "$(date) : check rclone version >> starting"
   update_rclone
