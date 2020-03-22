@@ -87,6 +87,7 @@ if [ -d ${LOGS} ]; then
    truncate -s 0 ${LOGS}/*.log
 fi
 }
+
 rsync_log()
 {
 tail -n 2 ${LOGS}/rsync.log
@@ -125,6 +126,7 @@ cd ${ARCHIVEROOT}
     echo "$(date) : Remove folder of ${dirrm} successfull"
  done
 }
+
 ### left over remove after upload
 remove_tar()
 {
@@ -160,6 +162,7 @@ while read p; do
   rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/${tar} ${OPTIONSRCLONE}
 done </tmp/tar_folders
 }
+
 remove_old_backups()
 {
 if grep -q gcrypt /rclone/rclone.conf; then
@@ -179,6 +182,7 @@ else
     echo "$(date) Daily Backups lower as ${BACKUP_HOLD} set"
 fi
 }
+
 update_rclone()
 {
 rcversion="$(curl -s https://api.github.com/repos/rclone/rclone/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')"
@@ -194,29 +198,6 @@ if [ "$rcversion" != "$rcstored" ]; then
     echo "$(date) : rclone update >> done "
 else
     echo "$(date) : rclone is up to date || ${rcstored}"
-fi
-}
-##EXECUTED PART
-upload_tar_part2()
-{
-rrc="/rclone/rclone.conf"
-if [ -f $rrc ]; then
-  echo "$(date) : starting uploading and removing backups"
-  remove_folder
-  echo "$(date) : remove leftover folder >> done"
-  upload_tar
-  echo "$(date) : upload of the backups >> done"
-  remove_old_backups
-  echo "$(date) : purge old backups >> done"
-  remove_tar
-  echo "$(date) : purge old tar files >> done"
-  echo "$(date) : check rclone version >> starting"
-  update_rclone
-  echo "$(date) : check rclone version >> done"
-else
-  echo "$(date) : WARNING = no rclone.conf found"
-  echo "$(date) : WARNING = Backups not uploaded to any place"
-  echo "$(date) : WARNING = backups are always overwritten"
 fi
 }
 ######
@@ -236,7 +217,26 @@ else
   echo "$(rsync_log)"
   tar_gz
   echo "$(date) : Tar Backup done"
-  upload_tar_part2
+  ##EXECUTED PART
+  RCCONFIG=/rclone/rclone.conf
+     if [ -f $RCCONFIG ]; then
+       echo "$(date) : starting uploading and removing backups"
+       remove_folder
+       echo "$(date) : remove leftover folder >> done"
+       upload_tar
+       echo "$(date) : upload of the backups >> done"
+       remove_old_backups
+       echo "$(date) : purge old backups >> done"
+       remove_tar
+       echo "$(date) : purge old tar files >> done"
+     else
+       echo "$(date) : WARNING = no rclone.conf found"
+       echo "$(date) : WARNING = Backups not uploaded to any place"
+       echo "$(date) : WARNING = backups are always overwritten"
+     fi
+  echo "$(date) : check rclone version >> starting"
+  update_rclone
+  echo "$(date) : check rclone version >> done"
   rm $PIDFILE;
 fi
 
