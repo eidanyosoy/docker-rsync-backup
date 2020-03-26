@@ -21,6 +21,8 @@
 PIDFILE=/var/run/backup.pid
 LOGS=/log
 RCCONFIG=/rclone/rclone.conf
+INCREMENT=$(date +%Y-%m-%d)
+RUNNER_COMMAND="--config /rclone/rclone.conf | tail -n 1 | awk '{print $2}'"
 
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
@@ -57,41 +59,53 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
   --drive-acknowledge-abuse=true \
   --use-mmap"
 
-INCREMENT=$(date +%Y-%m-%d)
-
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
-  echo "Installed ${ARCHIVEROOT}"
+  echo "$(date) : Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
+  echo "$(date) : Permission set for ${ARCHIVEROOT} || passed"
 else 
   install -d "${ARCHIVEROOT}"
-  echo "Installed ${ARCHIVEROOT}"
+  echo "$(date) : Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
+  echo "$(date) : Permission set for ${ARCHIVEROOT} || passed"
 fi
 
 # Make sure Log folder exist 
-  if [ -d "${LOGS}" ]; then
-   install -d "${LOGS}"
-   echo "$(date) : $LOGS exist - done"
-   chmod 777 "${LOGS}"
-  else 
-    echo "$(date) : $LOGS not exist - create runs"
-    install -d "${LOGS}"
-    echo "$(date) : Installed $LOGS - done"
-    chmod 777 "${LOGS}"
-  fi
+if [ -d "${LOGS}" ]; then
+  install -d "${LOGS}"
+  echo "$(date) : $LOGS exist - done"
+  chmod 777 "${LOGS}"
+else 
+  echo "$(date) : $LOGS not exist - create runs"
+  install -d "${LOGS}"
+  echo "$(date) : Installed $LOGS - done"
+  chmod 777 "${LOGS}"
+fi
 
 # Make sure rclone.conf exist 
-  if [ -f $RCCONFIG ]; then
-   echo "rclone config found | files will stored on your Google drive"
-   sleep 15
-  else
-    echo "$(date) : WARNING = no rclone.conf found"
-    echo "$(date) : WARNING = Backups not uploaded to any place"
-    echo "$(date) : WARNING = backups are always overwritten"
-    sleep 30
-  fi
+if [ -f $RCCONFIG ]; then
+  echo "$(date) : rclone config found | files will stored on your Google drive"
+  sleep 15
+  runner_check
+else
+  echo "$(date) : WARNING = no rclone.conf found"
+  echo "$(date) : WARNING = Backups not uploaded to any place"
+  echo "$(date) : WARNING = backups are always overwritten"
+  sleep 30
+fi
+
+######
+runner_check()
+{
+if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${RUNNER_COMMAND} ) == $(date +%Y-%m-%d) ]; then
+  echo "$(date) :  Backup already uploaded / finished" 
+  rm -rf ${ARCHIVEROOT} || exit
+else
+  rm -rf $PIDFILE
+fi
+}
 
 remove_logs()
 {
@@ -164,7 +178,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 
-echo "Server ID set to ${SERVER_ID}"
+echo "$(date) : Server ID set to ${SERVER_ID}"
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 while read p; do
@@ -191,7 +205,7 @@ if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | wc -l
       rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
     done </tmp/backup_old
 else 
-    echo "$(date) : Daily Backups lower as ${BACKUP_HOLD} set"
+    echo "$(date) : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
 fi
 }
 
@@ -212,7 +226,6 @@ else
     echo "$(date) : rclone is up to date || ${rcstored}"
 fi
 }
-######
 
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
