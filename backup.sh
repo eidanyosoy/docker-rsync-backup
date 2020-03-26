@@ -191,7 +191,7 @@ if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | wc -l
       rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
     done </tmp/backup_old
 else 
-    echo "$(date) Daily Backups lower as ${BACKUP_HOLD} set"
+    echo "$(date) : Daily Backups lower as ${BACKUP_HOLD} set"
 fi
 }
 
