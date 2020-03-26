@@ -59,6 +59,8 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
   --drive-acknowledge-abuse=true \
   --use-mmap"
 
+OPTIONSTCHECK="--config /rclone/rclone.conf"
+
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
@@ -96,14 +98,23 @@ else
   sleep 30
 fi
 
-######
 runner_check()
 {
-if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${RUNNER_COMMAND} ) == $(date +%Y-%m-%d) ]; then
+# shellcheck disable=SC2164
+# shellcheck disable=SC2086
+# shellcheck disable=SC2164
+if grep -q gcrypt /rclone/rclone.conf; then
+  REMOTE="gcrypt"
+ else
+  REMOTE="gdrive"
+fi
+
+if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
   echo "$(date) :  Backup already uploaded / finished" 
-  rm -rf ${ARCHIVEROOT} || exit
-else
   rm -rf $PIDFILE
+  exit 0
+else
+  echo "$(date) :  Backup not exist ||  Backup starting"
 fi
 }
 
