@@ -90,33 +90,28 @@ fi
 if [ -f $RCCONFIG ]; then
   echo "$(date) : rclone config found | files will stored on your Google drive"
   sleep 15
-  runner_check
+  # shellcheck disable=SC2164
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2164
+  if grep -q gcrypt /rclone/rclone.conf; then
+    REMOTE="gcrypt"
+  else
+    REMOTE="gdrive"
+  fi
+  if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
+    echo "$(date) : Backup already uploaded / finished" 
+	echo "$(date) : Next startup @ ${CRON_TIME}" 
+    rm -rf $PIDFILE
+    exit 0
+  else
+    echo "$(date) :  Backup not exist || Backup starting"
+  fi
 else
   echo "$(date) : WARNING = no rclone.conf found"
   echo "$(date) : WARNING = Backups not uploaded to any place"
   echo "$(date) : WARNING = backups are always overwritten"
   sleep 30
 fi
-
-runner_check()
-{
-# shellcheck disable=SC2164
-# shellcheck disable=SC2086
-# shellcheck disable=SC2164
-if grep -q gcrypt /rclone/rclone.conf; then
-  REMOTE="gcrypt"
- else
-  REMOTE="gdrive"
-fi
-
-if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
-  echo "$(date) :  Backup already uploaded / finished" 
-  rm -rf $PIDFILE
-  exit 0
-else
-  echo "$(date) :  Backup not exist ||  Backup starting"
-fi
-}
 
 remove_logs()
 {
