@@ -202,8 +202,8 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else
   REMOTE="gdrive"
 fi
-if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | wc -l) -gt ${BACKUP_HOLD} ]; then
-    rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n ${BACKUP_HOLD} >/tmp/backup_old
+if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSCHECK} | wc -l) -gt ${BACKUP_HOLD} ]; then
+    rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n ${BACKUP_HOLD} | awk '{print $2}' >/tmp/backup_old
     p="/tmp/backup_old"
     while read p; do
       echo $p >/tmp/old_backups
