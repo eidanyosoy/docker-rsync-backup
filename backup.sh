@@ -197,21 +197,24 @@ done </tmp/tar_folders
 
 remove_old_backups()
 {
+# shellcheck disable=SC2164
+# shellcheck disable=SC2086
+# shellcheck disable=SC2164
 if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gcrypt"
  else
   REMOTE="gdrive"
 fi
-if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSCHECK} | wc -l) -gt ${BACKUP_HOLD} ]; then
-    rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID}/ ${OPTIONSREMOVE} | head -n ${BACKUP_HOLD} | awk '{print $2}' >/tmp/backup_old
+if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | wc -l) -lt ${BACKUP_HOLD} ]; then
+    echo "$(date) : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
+else
+    rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | head -n ${BACKUP_HOLD} | awk '{print $2}' >/tmp/backup_old
     p="/tmp/backup_old"
     while read p; do
       echo $p >/tmp/old_backups
       old_backup=$(cat /tmp/old_backups)
       rclone purge ${REMOTE}:/backup-daily/${SERVER_ID}/${old_backup} ${OPTIONSREMOVE}
     done </tmp/backup_old
-else 
-    echo "$(date) : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
 fi
 }
 
