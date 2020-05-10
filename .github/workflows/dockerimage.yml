@@ -2,26 +2,17 @@ name: Docker Image CI
 
 on:
   push:
-    branches:
-    - master
-    - release/*
+    branches: [ master ]
   pull_request:
-    branches:
-    - master
-on:
-  schedule:
-  - cron: "0 2 * * 1-5"
+    branches: [ master ]
 
 jobs:
-  my_job:
-    name: ubuntu-latest
-    runs-on: ubuntu-latest
 
   build:
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-
