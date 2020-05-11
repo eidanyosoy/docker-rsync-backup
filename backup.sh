@@ -242,6 +242,7 @@ fi
 }
 
 #discord()
+#{
 #  if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
 #    TIME="$((count=${ENDTIME}-${STARTTIME}))"
 #    duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
