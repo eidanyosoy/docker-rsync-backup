@@ -61,6 +61,11 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
 
 OPTIONSTCHECK="--config /rclone/rclone.conf"
 
+DISCORD="/config/discord/${FILEBASE}.discord
+DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
+DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
+
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
@@ -235,6 +240,23 @@ else
     echo "$(date) : rclone is up to date || ${rcstored}"
 fi
 }
+
+#discord()
+#  if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+#    TIME="$((count=${ENDTIME}-${STARTTIME}))"
+#    duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
+#    echo "Upload complete for \nFILE: ${FILEDIR}/${FILEBASE} \nSIZE : ${HRFILESIZE} \nSpeed : ${BWLIMITSPEED} \nTime : ${duration}" >"${DISCORD}"
+#    message=$(cat "${DISCORD}")
+#    msg_content=\"$message\"
+#    USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
+#    IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
+#    DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+#    curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
+#  else
+#    log "[Upload] Upload complete for $FILE, Cleaning up"
+#  fi
+#}
+
 
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
