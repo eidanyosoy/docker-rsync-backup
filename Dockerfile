@@ -13,7 +13,10 @@ ENV BACKUPDIR="/home" \
     CONTAINER_TIMEZONE="Europe/Berlin" \
     BACKUP_HOLD="15" \
     SERVER_ID="docker" \
-    RSYNC_COMPRESS_LEVEL="2"
+    RSYNC_COMPRESS_LEVEL="2" \
+    DISCORD_WEBHOOK_URL="" \
+    DISCORD_ICON_OVERRIDE="https://i.imgur.com/KorF8zC.png" \
+    DISCORD_NAME_OVERRIDE="BACKUP"
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
