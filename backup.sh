@@ -61,7 +61,7 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
 
 OPTIONSTCHECK="--config /rclone/rclone.conf"
 
-DISCORD="/config/discord/${FILEBASE}.discord
+DISCORD="/config/discord/${FILEBASE}.discord"
 DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
 DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
 DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
