@@ -92,6 +92,18 @@ else
   echo "${output} : Installed $LOGS - done"
   chmod 777 "${LOGS}"
 fi
+# Send start message via Doíscord 
+if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+   echo "${output}  rsync docker started" >"${DISCORD}"
+   message=$(cat "${DISCORD}")
+   msg_content=\"$message\"
+   USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
+   IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
+   DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+   curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
+ else
+   echo "${output} rsync docker started"
+fi
 # Make sure rclone.conf exist 
 if [ -f $RCCONFIG ]; then
   echo "${output} : rclone config found | files will stored on your Google drive"
@@ -117,18 +129,6 @@ else
   echo "${output} : WARNING = Backups not uploaded to any place"
   echo "${output} : WARNING = backups are always overwritten"
   sleep 30
-fi
-# Send start message via Doíscord 
-if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
-   echo "${output}  rsync docker started" >"${DISCORD}"
-   message=$(cat "${DISCORD}")
-   msg_content=\"$message\"
-   USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
-   IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
-   DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
-   curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
- else
-   echo "${output} rsync docker started"
 fi
 remove_logs()
 {
