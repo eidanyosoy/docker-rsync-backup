@@ -68,7 +68,6 @@ DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
 DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
 
 ####### FUNCTIONS START #######
-
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
@@ -94,6 +93,7 @@ else
 fi
 # Send start message via Doíscord 
 if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+   rm -rf ${DISCORD} && touch ${DISCORD}
    echo "${output}  rsync docker started" >"${DISCORD}"
    message=$(cat "${DISCORD}")
    msg_content=\"$message\"
