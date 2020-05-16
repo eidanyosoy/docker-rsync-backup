@@ -23,7 +23,6 @@ LOGS=/log
 RCCONFIG=/rclone/rclone.conf
 INCREMENT=$(date +%Y-%m-%d)
 RUNNER_COMMAND="--config /rclone/rclone.conf | tail -n 1 | awk '{print $2}'"
-
 # Options to pass to rsync
 OPTIONS="--force --ignore-errors --delete \
  --exclude-from=/root/backup_excludes \
@@ -63,6 +62,11 @@ OPTIONSTCHECK="--config /rclone/rclone.conf"
 
 output="[Backup] `date '+%A %d-%B, %Y'`"
 
+DISCORD="${LOGS}/discord.discord"
+DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
+DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
+
 ####### FUNCTIONS START #######
 
 # Make sure our backup tree exists
@@ -77,7 +81,6 @@ else
   chmod 777 "${ARCHIVEROOT}"
   echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
 fi
-
 # Make sure Log folder exist 
 if [ -d "${LOGS}" ]; then
   install -d "${LOGS}"
@@ -89,7 +92,6 @@ else
   echo "${output} : Installed $LOGS - done"
   chmod 777 "${LOGS}"
 fi
-
 # Make sure rclone.conf exist 
 if [ -f $RCCONFIG ]; then
   echo "${output} : rclone config found | files will stored on your Google drive"
@@ -116,19 +118,16 @@ else
   echo "${output} : WARNING = backups are always overwritten"
   sleep 30
 fi
-
 remove_logs()
 {
 if [ -d ${LOGS} ]; then
    truncate -s 0 ${LOGS}/*.log
 fi
 }
-
 rsync_log()
 {
 tail -n 2 ${LOGS}/rsync.log
 }
-
 # Our actual rsyncing function
 do_rsync()
 {
@@ -136,7 +135,6 @@ do_rsync()
  # shellcheck disable=SC2164
   rsync ${OPTIONS} -e "ssh -Tx -c aes128-gcm@openssh.com -o Compression=no -i ${SSH_IDENTITY_FILE} -p${SSH_PORT}" "${BACKUPDIR}/" "$ARCHIVEROOT" >> ${LOGS}/rsync.log
 }
-
 tar_gz()
 {
  # shellcheck disable=SC2086
@@ -239,12 +237,29 @@ else
     echo "${output} : rclone is up to date || ${rcstored}"
 fi
 }
-
+discord()
+{
+  if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+    TIME="$((count=${ENDTIME}-${STARTTIME}))"
+    duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
+    echo "${output}  \nTime : ${duration}" >"${DISCORD}"
+    message=$(cat "${DISCORD}")
+    msg_content=\"$message\"
+    USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
+    IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
+    DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+    curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
+  else
+    echo "${output} Backup complete"
+  fi
+}
+#####
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
   echo "${output}: Backup already running, remove PID file to rerun" || exit
 else
   touch $PIDFILE;
+  STARTTIME=$(date +%s)
   echo "${output} : remove old log files"
   remove_logs
   echo "${output} : Rsync Backup is starting"
@@ -264,6 +279,10 @@ else
        echo "${output} : purge old backups >> done"
        remove_tar
        echo "${output} : purge old tar files >> done"
+     fi
+	 ENDTIME=$(date +%s)
+     if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+       discord
      fi
   echo "${output} : check rclone version >> starting"
   update_rclone
