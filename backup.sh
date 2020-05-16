@@ -61,34 +61,38 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
 
 OPTIONSTCHECK="--config /rclone/rclone.conf"
 
+output="[Backup] `date '+%A %d-%B, %Y'`"
+
+####### FUNCTIONS START #######
+
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
-  echo "$(date) : Installed ${ARCHIVEROOT}"
+  echo "${output} : Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
-  echo "$(date) : Permission set for ${ARCHIVEROOT} || passed"
+  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
 else 
   install -d "${ARCHIVEROOT}"
-  echo "$(date) : Installed ${ARCHIVEROOT}"
+  echo "${output} : Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
-  echo "$(date) : Permission set for ${ARCHIVEROOT} || passed"
+  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
 fi
 
 # Make sure Log folder exist 
 if [ -d "${LOGS}" ]; then
   install -d "${LOGS}"
-  echo "$(date) : $LOGS exist - done"
+  echo "${output} : $LOGS exist - done"
   chmod 777 "${LOGS}"
 else 
-  echo "$(date) : $LOGS not exist - create runs"
+  echo "${output} : $LOGS not exist - create runs"
   install -d "${LOGS}"
-  echo "$(date) : Installed $LOGS - done"
+  echo "${output} : Installed $LOGS - done"
   chmod 777 "${LOGS}"
 fi
 
 # Make sure rclone.conf exist 
 if [ -f $RCCONFIG ]; then
-  echo "$(date) : rclone config found | files will stored on your Google drive"
+  echo "${output} : rclone config found | files will stored on your Google drive"
   sleep 15
   # shellcheck disable=SC2164
   # shellcheck disable=SC2086
@@ -99,17 +103,17 @@ if [ -f $RCCONFIG ]; then
     REMOTE="gdrive"
   fi
   if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
-    echo "$(date) : Backup already uploaded / finished" 
-	echo "$(date) : Next startup @ ${CRON_TIME}" 
+    echo "${output} : Backup already uploaded / finished" 
+	echo "${output} : Next startup @ ${CRON_TIME}" 
     rm -rf $PIDFILE
     exit 0
   else
-    echo "$(date) :  Backup not exist || Backup starting"
+    echo "${output} :  Backup not exist || Backup starting"
   fi
 else
-  echo "$(date) : WARNING = no rclone.conf found"
-  echo "$(date) : WARNING = Backups not uploaded to any place"
-  echo "$(date) : WARNING = backups are always overwritten"
+  echo "${output} : WARNING = no rclone.conf found"
+  echo "${output} : WARNING = Backups not uploaded to any place"
+  echo "${output} : WARNING = backups are always overwritten"
   sleep 30
 fi
 
@@ -140,9 +144,9 @@ tar_gz()
  # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for dir_tar in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
-    echo "$(date) : Tar Backup running for ${dir_tar}"
+    echo "${output} : Tar Backup running for ${dir_tar}"
     tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./ >> ${LOGS}/tar.log
-    echo "$(date) : Tar Backup of ${dir_tar} successfull"
+    echo "${output} : Tar Backup of ${dir_tar} successfull"
  done
 }
 ### left over remove before upload 
@@ -153,9 +157,9 @@ remove_folder()
 # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for dirrm in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
-    echo "$(date) : Remove folder running for ${dirrm}"
+    echo "${output} : Remove folder running for ${dirrm}"
     rm -rf ${dirrm} >> ${LOGS}/removefolder.log
-    echo "$(date) : Remove folder of ${dirrm} successfull"
+    echo "${output} : Remove folder of ${dirrm} successfull"
  done
 }
 
@@ -167,9 +171,9 @@ remove_tar()
 # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for tarrm in `find . -maxdepth 1 -type f | grep ".tar" `; do
-    echo "$(date) : Remove running for ${tarrm}"
+    echo "${output} : Remove running for ${tarrm}"
     rm -rf ${tarrm} >> ${LOGS}/removetar.log
-    echo "$(date) : Remove of ${tarrm} successfull"
+    echo "${output} : Remove of ${tarrm} successfull"
  done
 }
 
@@ -184,7 +188,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 
-echo "$(date) : Server ID set to ${SERVER_ID}"
+echo "${output} : Server ID set to ${SERVER_ID}"
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 while read p; do
@@ -206,7 +210,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | wc -l) -lt ${BACKUP_HOLD} ]; then
-    echo "$(date) : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
+    echo "${output} : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
 else
     rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | head -n ${BACKUP_HOLD} | awk '{print $2}' >/tmp/backup_old
     p="/tmp/backup_old"
@@ -223,47 +227,47 @@ update_rclone()
 rcversion="$(curl -s https://api.github.com/repos/rclone/rclone/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')"
 rcstored="$(rclone --version | awk '{print $2}' | tail -n 3 | head -n 1)"
 if [ "$rcversion" != "$rcstored" ]; then 
-    echo "$(date) : rclone will be updated to ${rcversion}"
+    echo "${output} : rclone will be updated to ${rcversion}"
         wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate 1>/dev/null 2>&1
         unzip rclone.zip 1>/dev/null 2>&1
         rm rclone.zip 1>/dev/null 2>&1
         mv rclone*/rclone /usr/bin 1>/dev/null 2>&1
         rm -r rclone* 1>/dev/null 2>&1
         mkdir -p /rclone 1>/dev/null 2>&1
-    echo "$(date) : rclone update >> done "
+    echo "${output} : rclone update >> done "
 else
-    echo "$(date) : rclone is up to date || ${rcstored}"
+    echo "${output} : rclone is up to date || ${rcstored}"
 fi
 }
 
 # Some error handling and/or run our backup and tar_create/tar_upload
 if [ -f $PIDFILE ]; then
-  echo "$(date): Backup already running, remove PID file to rerun" || exit
+  echo "${output}: Backup already running, remove PID file to rerun" || exit
 else
   touch $PIDFILE;
-  echo "$(date) : remove old log files"
+  echo "${output} : remove old log files"
   remove_logs
-  echo "$(date) : Rsync Backup is starting"
+  echo "${output} : Rsync Backup is starting"
   do_rsync
-  echo "$(date) : Rsync Backup done"
+  echo "${output} : Rsync Backup done"
   echo "$(rsync_log)"
   tar_gz
-  echo "$(date) : Tar Backup done"
+  echo "${output} : Tar Backup done"
   sleep 30
      if [ -f $RCCONFIG ]; then
-       echo "$(date) : starting upload and remove backups"
+       echo "${output} : starting upload and remove backups"
        remove_folder
-       echo "$(date) : remove leftover folder >> done"
+       echo "${output} : remove leftover folder >> done"
        upload_tar
-       echo "$(date) : upload of the backups >> done"
+       echo "${output} : upload of the backups >> done"
        remove_old_backups
-       echo "$(date) : purge old backups >> done"
+       echo "${output} : purge old backups >> done"
        remove_tar
-       echo "$(date) : purge old tar files >> done"
+       echo "${output} : purge old tar files >> done"
      fi
-  echo "$(date) : check rclone version >> starting"
+  echo "${output} : check rclone version >> starting"
   update_rclone
-  echo "$(date) : check rclone version >> done"
+  echo "${output} : check rclone version >> done"
   rm $PIDFILE;
 fi
 
