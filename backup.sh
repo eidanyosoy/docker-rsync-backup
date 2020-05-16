@@ -68,33 +68,36 @@ DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
 DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
 
 ####### FUNCTIONS START #######
-
-# Make sure our backup tree exists
-if [ -d "${ARCHIVEROOT}" ]; then
-  install -d "${ARCHIVEROOT}"
-  echo "${output} : Installed ${ARCHIVEROOT}"
-  chmod 777 "${ARCHIVEROOT}"
-  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
-else 
-  install -d "${ARCHIVEROOT}"
-  echo "${output} : Installed ${ARCHIVEROOT}"
-  chmod 777 "${ARCHIVEROOT}"
-  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
-fi
-# Make sure Log folder exist 
-if [ -d "${LOGS}" ]; then
-  install -d "${LOGS}"
-  echo "${output} : $LOGS exist - done"
-  chmod 777 "${LOGS}"
-else 
-  echo "${output} : $LOGS not exist - create runs"
-  install -d "${LOGS}"
-  echo "${output} : Installed $LOGS - done"
-  chmod 777 "${LOGS}"
-fi
-# Send start message via Doíscord 
 if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
-   echo "${output}  rsync docker started" >"${DISCORD}"
+	# Make sure our backup tree exists
+	if [ -d "${ARCHIVEROOT}" && -d "${LOGS}" ]; then
+	  rm -rf ${DISCORD} 
+	  echo "${output}"
+	  echo "${output} : rsync docker started" >> "${DISCORD}"
+	  install -d "${ARCHIVEROOT}" 
+	  echo "${output} : Installed ${ARCHIVEROOT}"
+	  chmod 777 "${ARCHIVEROOT}"
+	  echo "Permission set for ${ARCHIVEROOT} || passed"
+	  echo "${output} : ${LOGS}"
+	  echo "${output} : LOGS exist - done"
+	  chmod 777 "${LOGS}"
+	  echo "${output} : rsync docker started"
+	fi
+  else
+	  echo "rsync docker started"
+	  echo "${output}"
+	  install -d "${ARCHIVEROOT}"
+	  echo "Installed ${ARCHIVEROOT}"
+	  chmod 777 "${ARCHIVEROOT}"
+	  echo "Permission set for ${ARCHIVEROOT} || passed"
+	  echo "$LOGS not exist - create runs"
+	  install -d "${LOGS}"
+	  echo "Installed $LOGS - done"
+	  chmod 777 "${LOGS}"
+	  echo "${output} rsync docker started"
+fi
+# Send start message via Díscord 
+if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
    message=$(cat "${DISCORD}")
    msg_content=\"$message\"
    USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
@@ -261,6 +264,7 @@ discord()
     IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
     DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
     curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
+	rm -rf ${DISCORD} 
   else
     echo "${output} Backup complete"
   fi
