@@ -253,7 +253,7 @@ discord()
 {
   if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
     TIME="$((count=${ENDTIME}-${STARTTIME}))"
-    duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
+    duration="$(($TIME / 60 % 24)) hours and (($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
     echo "${output}  \nTime : ${duration}" >"${DISCORD}"
     message=$(cat "${DISCORD}")
     msg_content=\"$message\"
