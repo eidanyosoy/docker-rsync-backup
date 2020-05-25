@@ -60,7 +60,7 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
 
 OPTIONSTCHECK="--config /rclone/rclone.conf"
 
-output="[Backup] `date '+%T %A %d-%B,%Y'`"
+output="[Backup] `date '+%A %d-%B, %Y'`"
 
 DISCORD="${LOGS}/discord.discord"
 DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
@@ -118,7 +118,7 @@ if [ -f $RCCONFIG ]; then
   fi
   if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
     echo "${output} : Backup already uploaded / finished" 
-    echo "${output} : Next startup @ ${CRON_TIME}" 
+	echo "${output} : Next startup @ ${CRON_TIME}" 
     rm -rf $PIDFILE
     exit 0
   else
