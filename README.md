@@ -15,6 +15,24 @@ Basic backup of `/home` to `/mnt/backup_drive`
       mrdoob/rsyncbackup
 
 
+For full used all ENVS 
+
+    docker run -d --name rsync-backup \
+      --volume /home:/home \
+      --volume /mnt/backup_drive:/backup \
+      --volume /mnt/rsyncbackup/log:/log \
+      --volume /mnt/rsyncbackup/rclone:/rclone \
+      -env SET_CONTAINER_TIMEZONE=true \
+      -env CONTAINER_TIMEZONE=Europe/Stockholm \
+      -env BACKUP_HOLD=15 \
+      -env SERVER_ID=docker \
+      -env RSYNC_COMPRESS_LEVEL=1 \
+      -env DISCORD_WEBHOOK_URL="" \
+      -env DISCORD_ICON_OVERRIDE="https://i.imgur.com/KorF8zC.png" \
+      -env DISCORD_NAME_OVERRIDE="BACKUP" \
+      mrdoob/rsyncbackup
+
+
 The container can then be stopped with `docker kill rsync-backup`.
 
 ## Supported tags and architectures
@@ -85,6 +103,19 @@ examples. Here is a full list of the variables, default values and uses.
 
     RSYNC_COMPRESS_LEVEL
        this starts from 1 - 9. higher compression levels use more resources, The default is 2
+	 
+    DISCORD_WEBHOOK_URL
+        you can set a dicord webhook , when all is done ; means backup and upload 
+		it will send a note per Webhook to your discord server
+		basic is "null"
+
+    DISCORD_ICON_OVERRIDE
+       you can set any jpg/jpeg/png image as discord user image
+	   basic is "https://i.imgur.com/KorF8zC.png"
+
+    DISCORD_NAME_OVERRIDE
+       you can set any name what you want
+	   basic is "BACKUP"
 
 
 THIS IS A ***Work In Progress*** 
