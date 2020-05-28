@@ -172,7 +172,6 @@ cd ${ARCHIVEROOT}
     echo "${output} : Remove folder of ${dirrm} successfull"
  done
 }
-
 ### left over remove after upload
 remove_tar()
 {
@@ -186,7 +185,6 @@ cd ${ARCHIVEROOT}
     echo "${output} : Remove of ${tarrm} successfull"
  done
 }
-
 upload_tar()
 {
 # shellcheck disable=SC2164
@@ -197,7 +195,6 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else
   REMOTE="gdrive"
 fi
-
 echo "${output} : Server ID set to ${SERVER_ID}"
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
@@ -208,7 +205,6 @@ while read p; do
   rclone copyto ${ARCHIVEROOT}/${tar} ${REMOTE}:/backup-daily/${SERVER_ID}/${INCREMENT}/${tar} ${OPTIONSRCLONE}
 done </tmp/tar_folders
 }
-
 remove_old_backups()
 {
 # shellcheck disable=SC2164
