@@ -18,7 +18,11 @@
 #   want to change anything unless you  #
 #   know what you're doing.             #
 #########################################
+function log() {
+  echo "[Backup] `date '+%T %A %d-%B,%Y'` ${1}"
+}
 PIDFILE=/var/run/backup.pid
+BACKUP_RUNNING=/log/backup-running
 LOGS=/log
 RCCONFIG=/rclone/rclone.conf
 INCREMENT=$(date +%Y-%m-%d)
@@ -59,9 +63,6 @@ OPTIONSREMOVE="--config /rclone/rclone.conf \
   --use-mmap"
 
 OPTIONSTCHECK="--config /rclone/rclone.conf"
-
-output="[Backup] `date '+%T %A %d-%B,%Y'`"
-
 DISCORD="${LOGS}/discord.discord"
 DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
 DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
@@ -71,42 +72,42 @@ DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
 # Make sure our backup tree exists
 if [ -d "${ARCHIVEROOT}" ]; then
   install -d "${ARCHIVEROOT}"
-  echo "${output} : Installed ${ARCHIVEROOT}"
+  log ": Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
-  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
+  log ": Permission set for ${ARCHIVEROOT} || passed"
 else 
   install -d "${ARCHIVEROOT}"
-  echo "${output} : Installed ${ARCHIVEROOT}"
+  log ": Installed ${ARCHIVEROOT}"
   chmod 777 "${ARCHIVEROOT}"
-  echo "${output} : Permission set for ${ARCHIVEROOT} || passed"
+  log ": Permission set for ${ARCHIVEROOT} || passed"
 fi
 # Make sure Log folder exist 
 if [ -d "${LOGS}" ]; then
   install -d "${LOGS}"
-  echo "${output} : $LOGS exist - done"
+  log ": $LOGS exist - done"
   chmod 777 "${LOGS}"
 else 
-  echo "${output} : $LOGS not exist - create runs"
+  log ": $LOGS not exist - create runs"
   install -d "${LOGS}"
-  echo "${output} : Installed $LOGS - done"
+  log ": Installed $LOGS - done"
   chmod 777 "${LOGS}"
 fi
-# Send start message via Doíscord 
+# Send start message via Díscord 
 if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
    rm -rf ${DISCORD} && touch ${DISCORD}
-   echo "${output}  rsync docker started" >"${DISCORD}"
-   message=$(cat "${DISCORD}")
-   msg_content=\"$message\"
-   USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
-   IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
-   DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
-   curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
+   log ": rsync docker started" >"${DISCORD}"
+   msg_content=$(cat "${DISCORD}")
+   TITEL="RSYNC BACKUP"
+   DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
+   DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
+   DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+  curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"${DISCORD_NAME_OVERRIDE}\", \"avatar_url\": \"${DISCORD_ICON_OVERRIDE}\", \"embeds\": [{ \"title\": \"${TITEL}\", \"description\": \"$msg_content\" }]}" $DISCORD_WEBHOOK_URL
  else
-   echo "${output} rsync docker started"
+   log ": rsync docker started"
 fi
 # Make sure rclone.conf exist 
 if [ -f $RCCONFIG ]; then
-  echo "${output} : rclone config found | files will stored on your Google drive"
+  log ": rclone config found | files will stored on your Google drive"
   sleep 15
   # shellcheck disable=SC2164
   # shellcheck disable=SC2086
@@ -117,17 +118,17 @@ if [ -f $RCCONFIG ]; then
     REMOTE="gdrive"
   fi
   if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | tail -n 1 | awk '{print $2}') == ${INCREMENT} ]; then
-    echo "${output} : Backup already uploaded / finished" 
-    echo "${output} : Next startup @ ${CRON_TIME}" 
+    log ": Backup already uploaded / finished" 
+    log ": Next startup @ ${CRON_TIME}" 
     rm -rf $PIDFILE
     exit 0
   else
-    echo "${output} :  Backup not exist || Backup starting"
+    log ": Backup not exist || Backup starting"
   fi
 else
-  echo "${output} : WARNING = no rclone.conf found"
-  echo "${output} : WARNING = Backups not uploaded to any place"
-  echo "${output} : WARNING = backups are always overwritten"
+  log ": WARNING = no rclone.conf found"
+  log ": WARNING = Backups not uploaded to any place"
+  log ": WARNING = backups are always overwritten"
   sleep 30
 fi
 remove_logs()
@@ -154,9 +155,9 @@ tar_gz()
  # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for dir_tar in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
-    echo "${output} : Tar Backup running for ${dir_tar}"
+    log ": Tar Backup running for ${dir_tar}"
     tar ${OPTIONSTAR} -C ${dir_tar} -cvf ${dir_tar}.tar ./ >> ${LOGS}/tar.log
-    echo "${output} : Tar Backup of ${dir_tar} successfull"
+    log ": Tar Backup of ${dir_tar} successfull"
  done
 }
 ### left over remove before upload 
@@ -167,9 +168,9 @@ remove_folder()
 # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for dirrm in `find . -maxdepth 1 -type d | grep -v "^\.$" `; do
-    echo "${output} : Remove folder running for ${dirrm}"
+    log ": Remove folder running for ${dirrm}"
     rm -rf ${dirrm} >> ${LOGS}/removefolder.log
-    echo "${output} : Remove folder of ${dirrm} successfull"
+    log ": Remove folder of ${dirrm} successfull"
  done
 }
 ### left over remove after upload
@@ -180,9 +181,9 @@ remove_tar()
 # shellcheck disable=SC2006
 cd ${ARCHIVEROOT}
  for tarrm in `find . -maxdepth 1 -type f | grep ".tar" `; do
-    echo "${output} : Remove running for ${tarrm}"
+    log ": Remove running for ${tarrm}"
     rm -rf ${tarrm} >> ${LOGS}/removetar.log
-    echo "${output} : Remove of ${tarrm} successfull"
+    log ": Remove of ${tarrm} successfull"
  done
 }
 upload_tar()
@@ -195,7 +196,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
  else
   REMOTE="gdrive"
 fi
-echo "${output} : Server ID set to ${SERVER_ID}"
+log ": Server ID set to ${SERVER_ID}"
 tree -a -L 1 ${ARCHIVEROOT} | awk '{print $2}' | tail -n +2 | head -n -2 | grep ".tar" >/tmp/tar_folders
 p="/tmp/tar_folders"
 while read p; do
@@ -216,7 +217,7 @@ if grep -q gcrypt /rclone/rclone.conf; then
   REMOTE="gdrive"
 fi
 if [ $(rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | wc -l) -lt ${BACKUP_HOLD} ]; then
-    echo "${output} : Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
+    log ": Daily Backups on ${REMOTE} lower as ${BACKUP_HOLD} set"
 else
     rclone lsd ${REMOTE}:/backup-daily/${SERVER_ID} ${OPTIONSTCHECK} | head -n ${BACKUP_HOLD} | awk '{print $2}' >/tmp/backup_old
     p="/tmp/backup_old"
@@ -233,69 +234,82 @@ update_rclone()
 rcversion="$(curl -s https://api.github.com/repos/rclone/rclone/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')"
 rcstored="$(rclone --version | awk '{print $2}' | tail -n 3 | head -n 1)"
 if [ "$rcversion" != "$rcstored" ]; then 
-    echo "${output} : rclone will be updated to ${rcversion}"
+    log ": rclone will be updated to ${rcversion}"
         wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate 1>/dev/null 2>&1
         unzip rclone.zip 1>/dev/null 2>&1
         rm rclone.zip 1>/dev/null 2>&1
         mv rclone*/rclone /usr/bin 1>/dev/null 2>&1
         rm -r rclone* 1>/dev/null 2>&1
         mkdir -p /rclone 1>/dev/null 2>&1
-    echo "${output} : rclone update >> done "
+    log ": rclone update >> done "
 else
-    echo "${output} : rclone is up to date || ${rcstored}"
+    log ": rclone is up to date || ${rcstored}"
 fi
 }
 discord()
 {
-  if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
-    TIME="$((count=${ENDTIME}-${STARTTIME}))"
-    duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
-    echo "${output}  \nTime : ${duration} \nBackup Complete" >"${DISCORD}"
-    message=$(cat "${DISCORD}")
-    msg_content=\"$message\"
-    USERNAME=\"${DISCORD_NAME_OVERRIDE}\"
-    IMAGE=\"${DISCORD_ICON_OVERRIDE}\"
-    DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
-    curl -H "Content-Type: application/json" -X POST -d "{\"username\": $USERNAME, \"avatar_url\": $IMAGE, \"content\": $msg_content}" $DISCORD_WEBHOOK_URL
-  else
-    echo "${output} Backup complete"
-  fi
+if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+  TIME="$((count=${ENDTIME}-${STARTTIME}))"
+  duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
+  log ": \nTime : ${duration} \nBackup Complete" >"${DISCORD}"
+  msg_content=$(cat "${DISCORD}")
+  TITEL="RSYNC BACKUP"
+  DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
+  DISCORD_NAME_OVERRIDE=${DISCORD_NAME_OVERRIDE}
+  DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+  curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"${DISCORD_NAME_OVERRIDE}\", \"avatar_url\": \"${DISCORD_ICON_OVERRIDE}\", \"embeds\": [{ \"title\": \"${TITEL}\", \"description\": \"$msg_content\" }]}" $DISCORD_WEBHOOK_URL
+else
+  log ": Backup complete"
+fi
 }
 #####
+
+function commando_start() {
+touch $PIDFILE;
+touch $BACKUP_RUNNING
+STARTTIME=$(date +%s)
+log ": remove old log files"
+remove_logs
+log ": Rsync Backup is starting"
+do_rsync
+log ": Rsync Backup done"
+log ": $(rsync_log)"
+tar_gz
+log ": Tar Backup done"
+sleep 30
+  if [ -f $RCCONFIG ]; then
+     log ": starting upload and remove backups"
+     remove_folder
+     log ": remove leftover folder >> done"
+     upload_tar
+     log ": upload of the backups >> done"
+     remove_old_backups
+     log ": purge old backups >> done"
+     remove_tar
+     log ": purge old tar files >> done"
+  fi
+  ENDTIME=$(date +%s)
+  if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+     discord
+  fi
+log ": check rclone version >> starting"
+update_rclone
+log ": check rclone version >> done"
+rm -rf $BACKUP_RUNNING
+rm -rf $PIDFILE;
+}
+
+function restart()
+rm -rf $BACKUP_RUNNING
+rm -rf $PIDFILE
+commando_start
+}
+
 # Some error handling and/or run our backup and tar_create/tar_upload
-if [ -f $PIDFILE ]; then
-  echo "${output}: Backup already running, remove PID file to rerun" || exit
+if [[ -f $PIDFILE && $(ls -la /log | grep -c backup-running) == "1" ]]; then
+  restart
 else
-  touch $PIDFILE;
-  STARTTIME=$(date +%s)
-  echo "${output} : remove old log files"
-  remove_logs
-  echo "${output} : Rsync Backup is starting"
-  do_rsync
-  echo "${output} : Rsync Backup done"
-  echo "$(rsync_log)"
-  tar_gz
-  echo "${output} : Tar Backup done"
-  sleep 30
-     if [ -f $RCCONFIG ]; then
-       echo "${output} : starting upload and remove backups"
-       remove_folder
-       echo "${output} : remove leftover folder >> done"
-       upload_tar
-       echo "${output} : upload of the backups >> done"
-       remove_old_backups
-       echo "${output} : purge old backups >> done"
-       remove_tar
-       echo "${output} : purge old tar files >> done"
-     fi
-	 ENDTIME=$(date +%s)
-     if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
-       discord
-     fi
-  echo "${output} : check rclone version >> starting"
-  update_rclone
-  echo "${output} : check rclone version >> done"
-  rm $PIDFILE;
+ commando_start
 fi
 
 exit 0
