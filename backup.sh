@@ -299,7 +299,7 @@ rm -rf $BACKUP_RUNNING
 rm -rf $PIDFILE;
 }
 
-function restart()
+function restart() {
 rm -rf $BACKUP_RUNNING
 rm -rf $PIDFILE
 commando_start
