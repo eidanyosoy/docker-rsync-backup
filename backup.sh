@@ -249,9 +249,10 @@ fi
 discord()
 {
 if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
+  TRANSFERED="$(tail -n 2 ${LOGS}/rsync.log | grep "total size is" | awk '{print $4}')
   TIME="$((count=${ENDTIME}-${STARTTIME}))"
   duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
-  log ": \nTime : ${duration} \nBackup Complete" >"${DISCORD}"
+  log ": \nTime : ${duration} \nBackup Complete \nTotal Size Transfered: ${TRANSFERED}" >"${DISCORD}"
   msg_content=$(cat "${DISCORD}")
   TITEL="RSYNC BACKUP"
   DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
@@ -296,6 +297,7 @@ log ": check rclone version >> starting"
 update_rclone
 log ": check rclone version >> done"
 rm -rf $BACKUP_RUNNING
+remove_logs
 rm -rf $PIDFILE;
 }
 
