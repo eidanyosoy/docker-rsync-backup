@@ -249,10 +249,10 @@ fi
 discord()
 {
 if [ ${DISCORD_WEBHOOK_URL} != 'null' ]; then
-  TRANSFERED="$(tail -n 2 ${LOGS}/rsync.log | grep "total size is" | awk '{print $4}')"
+  TRANSFERED=$(tail -n 2 ${LOGS}/rsync.log | awk '{printf "%s\\n",$0} END {print ""}'
   TIME="$((count=${ENDTIME}-${STARTTIME}))"
   duration="$(($TIME / 60)) minutes and $(($TIME % 60)) seconds elapsed."
-  log ": \nTime : ${duration} \nBackup Complete \nTotal Size Transfered: ${TRANSFERED}" >"${DISCORD}"
+  log ": \nTime : ${duration} \nBackup Complete \nTransfered: ${TRANSFERED}" >"${DISCORD}"
   msg_content=$(cat "${DISCORD}")
   TITEL="RSYNC BACKUP"
   DISCORD_ICON_OVERRIDE=${DISCORD_ICON_OVERRIDE}
