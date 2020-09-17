@@ -92,7 +92,7 @@ examples. Here is a full list of the variables, default values and uses.
 
     CONTAINER_TIMEZONE=Europe/Stockholm
        You can choose any timezone you want , for find the correct timezone 
-       In your case  ( sudo cat /etc/timecone )
+       In your case  ( sudo cat /etc/timezone )
 
     BACKUP_HOLD=15
        Remove older Backups from GDrice or GCrypt 
