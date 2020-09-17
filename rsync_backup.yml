@@ -39,7 +39,7 @@
           CONTAINER_TIMEZONE: '{{tz.stdout}}'
           BACKUP_HOLD: '15'
           SERVER_ID: '{{serverid.stdout}}'
-          RSYNC_COMPRESS_LEVEL:'2'
+          RSYNC_COMPRESS_LEVEL: '2'
           SET_CONTAINER_TIMEZONE: 'true'
 
     ## VALUES for upload backups
