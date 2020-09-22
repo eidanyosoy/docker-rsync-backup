@@ -21,33 +21,16 @@ ENV BACKUPDIR="/home" \
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community/ >> /etc/apk/repositories && \
     apk update && apk upgrade && \
     apk add --no-cache \
-        ca-certificates \
-        rsync \
-        openssh-client \
-        tar \
-        wget \
-        logrotate \
-        shadow \
-        bash \
-        bc \
-        findutils \
-        coreutils \
-        openssl \
-        curl \
-        libxml2-utils \
-        htop \
-        tree \
-        nano \
-        pigz \
-        mc \ 
-        tzdata \
-        openntpd \
-        grep
+        ca-certificates rsync openssh-client tar wget logrotate \
+        shadow bash bc findutils coreutils openssl \
+        curl libxml2-utils tree pigz tzdata openntpd grep
 
-RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip -O rclone.zip --no-check-certificate && \
-    unzip rclone.zip && rm rclone.zip && \
-    mv rclone*/rclone /usr/bin && rm -r rclone* && \
-    mkdir -p /rclone
+RUN \
+  curl -O https://downloads.rclone.org/v1.52.0/rclone-v1.52.0-linux-amd64.zip && \
+  unzip -q rclone-v1.52.0-linux-amd64.zip && \
+  rm -f rclone-v1.52.0-linux-amd64.zip && \
+  cd rclone-*-linux-amd64 && \
+  cp rclone /usr/bin/
 
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY backup.sh /backup.sh
