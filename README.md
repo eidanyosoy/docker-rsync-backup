@@ -8,11 +8,11 @@ Basic backup of `/home` to `/mnt/backup_drive`
       --volume /mnt/rsyncbackup/log:/log \
       --volume /mnt/rsyncbackup/rclone:/rclone \
       -env SET_CONTAINER_TIMEZONE=true \
-      -env CONTAINER_TIMEZONE=Europe/Stockholm \
+      -env CONTAINER_TIMEZONE=America/New_York \
       -env BACKUP_HOLD=15 \
       -env SERVER_ID=docker \
       -env RSYNC_COMPRESS_LEVEL=1 \
-      mrdoob/rsyncbackup
+      smashingtags/rsyncbackup
 
 
 For full used all ENVS 
@@ -23,14 +23,14 @@ For full used all ENVS
       --volume /mnt/rsyncbackup/log:/log \
       --volume /mnt/rsyncbackup/rclone:/rclone \
       -env SET_CONTAINER_TIMEZONE=true \
-      -env CONTAINER_TIMEZONE=Europe/Stockholm \
+      -env CONTAINER_TIMEZONE=America/New_York \
       -env BACKUP_HOLD=15 \
       -env SERVER_ID=docker \
       -env RSYNC_COMPRESS_LEVEL=1 \
       -env DISCORD_WEBHOOK_URL="" \
       -env DISCORD_ICON_OVERRIDE="https://i.imgur.com/KorF8zC.png" \
       -env DISCORD_NAME_OVERRIDE="BACKUP" \
-      mrdoob/rsyncbackup
+      smashingtags/rsyncbackup
 
 
 The container can then be stopped with `docker kill rsync-backup`.
@@ -90,7 +90,7 @@ examples. Here is a full list of the variables, default values and uses.
     CRON_TIME ("0 1 * * *"): 
        The time to do backups. The default is at 01:00 every night.
 
-    CONTAINER_TIMEZONE=Europe/Stockholm
+    CONTAINER_TIMEZONE=America/New_York
        You can choose any timezone you want , for find the correct timezone 
        In your case  ( sudo cat /etc/timezone )
 
@@ -125,4 +125,4 @@ in the end this means that there could be updates daily to weekly, as well as po
 
 # Support
 
-Add a [GitHube Issuses](https://github.com/doob187/docker-rsync-backup/issues).
+Add a [GitHub Issuse](https://github.com/doob187/docker-rsync-backup/issues).
