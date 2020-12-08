@@ -1,19 +1,19 @@
 FROM alpine:latest
 #THX TO Johan Swetzén <johan@swetzen.com> for Build up the basic parts
-MAINTAINER MrDoob <fuckoff@all.com>
+MAINTAINER smashingtags <fuckoff@all.com>
 
 ENV BACKUPDIR="/home" \
     ARCHIVEROOT="/backup" \
     EXCLUDES="/backup_excludes" \
     SSH_PORT="22" \
     SSH_IDENTITY_FILE="/root/.ssh/id_rsa" \
-    CRON_TIME="0 1 * * *" \
+    CRON_TIME="0 4 * * *" \
     LOGS="/log" \
     SET_CONTAINER_TIMEZONE="true" \
-    CONTAINER_TIMEZONE="Europe/Berlin" \
+    CONTAINER_TIMEZONE="America/New_York" \
     BACKUP_HOLD="15" \
     SERVER_ID="docker" \
-    RSYNC_COMPRESS_LEVEL="2" \
+    RSYNC_COMPRESS_LEVEL="1" \
     DISCORD_WEBHOOK_URL="" \
     DISCORD_ICON_OVERRIDE="https://i.imgur.com/KorF8zC.png" \
     DISCORD_NAME_OVERRIDE="BACKUP"
